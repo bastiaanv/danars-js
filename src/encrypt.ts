@@ -78,6 +78,12 @@ function encodeTimeInformation(data: Uint8Array | undefined, deviceName: string,
   buffer[4] = 0x01; // time information command
 
   if (data && data.length > 0) {
+    if (enhancedEncryption === 2) {
+      data[1] = 0x17 ^ 0x1a;
+      data[2] = 0xd1 ^ 0xc0;
+      data[3] = 0xaf ^ 0xa9;
+    }
+
     for (let i = 0; i < data.length; i++) {
       buffer[5 + i] = data[i];
     }
