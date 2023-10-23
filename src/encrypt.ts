@@ -24,7 +24,7 @@ export function encrypt(operationCode: number, data: Uint8Array | undefined, dev
       return encodeRequestCommand(operationCode, deviceName, enhancedEncryption, unknownValue);
 
     default:
-      throw new Error('Not implemented yet...');
+      return encodeDefault(operationCode, data, deviceName, enhancedEncryption, unknownValue);
   }
 }
 
@@ -84,10 +84,10 @@ function encodeTimeInformation(data: Uint8Array | undefined, deviceName: string,
   }
 
   const crc = generateCrc(buffer.subarray(3, 5 + lengthOfData), enhancedEncryption, unknownValue);
-  buffer[5] = (crc >> 8) & 0xff; // crc 1
-  buffer[6] = crc & 0xff; // crc 2
-  buffer[7] = 0x5a; // footer 1
-  buffer[8] = 0x5a; // footer 2
+  buffer[5 + lengthOfData] = (crc >> 8) & 0xff; // crc 1
+  buffer[6 + lengthOfData] = crc & 0xff; // crc 2
+  buffer[7 + lengthOfData] = 0x5a; // footer 1
+  buffer[8 + lengthOfData] = 0x5a; // footer 2
 
   return encodePacketSerialNumber(buffer, deviceName);
 }
@@ -108,10 +108,40 @@ function encodeCheckPassKeyCommand(data: Uint8Array | undefined, deviceName: str
   }
 
   const crc = generateCrc(buffer.subarray(3, 5 + lengthOfData), enhancedEncryption, unknownValue);
+  buffer[5 + lengthOfData] = (crc >> 8) & 0xff; // crc 1
+  buffer[6 + lengthOfData] = crc & 0xff; // crc 2
+  buffer[7 + lengthOfData] = 0x5a; // footer 1
+  buffer[8 + lengthOfData] = 0x5a; // footer 2
+
+  return encodePacketSerialNumber(buffer, deviceName);
+}
+
+function encodeDefault(operationCode: number, data: Uint8Array | undefined, deviceName: string, enhancedEncryption: number, unknownValue: number) {
+  const lengthOfData = data?.length || 0;
+  const buffer = new Uint8Array(9 + lengthOfData);
+  buffer[0] = 0xa5; // header 1
+  buffer[1] = 0xa5; // header 2
+  buffer[2] = 0x02 + lengthOfData; // length
+  buffer[3] = 0xa1; // command?
+  buffer[4] = operationCode; // operation code
+
+  if (data && data.length > 0) {
+    for (let i = 0; i < data.length; i++) {
+      // TODO:
+      // buffer[5 + i] = encodePacketPassKeySerialNumber(data[i], deviceName);
+    }
+  }
+
+  const crc = generateCrc(buffer.subarray(3, 5 + lengthOfData), enhancedEncryption, unknownValue);
   buffer[5] = (crc >> 8) & 0xff; // crc 1
   buffer[6] = crc & 0xff; // crc 2
   buffer[7] = 0x5a; // footer 1
   buffer[8] = 0x5a; // footer 2
 
-  return encodePacketSerialNumber(buffer, deviceName);
+  const encrypted1 = encodePacketSerialNumber(buffer, deviceName);
+  if (enhancedEncryption === 0) {
+    // TODO:
+  }
+
+  return encrypted1;
 }
