@@ -3,7 +3,7 @@ export function generateCrc(buffer: Uint8Array, enhancedEncryption: number = 0, 
 
   for (let i = 0; i < buffer.length; i++) {
     result = buffer[i] ^ ((result >> 8) | (result << 8));
-    result = result ^ ((result >> 4) & 0x000f);
+    result = result ^ ((result & 0xFF) >> 4);
     result = result ^ (result << 12);
 
     if (enhancedEncryption === 0 || unknownValue === 0 || unknownValue === 1) {
