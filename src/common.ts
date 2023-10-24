@@ -23,7 +23,7 @@ export function encodePacketPassword(buffer: Uint8Array, deviceName: string) {
   const factor2 = deviceName.charCodeAt(1);
 
   for (let i = 3; i < buffer.length - 2; i++) {
-    buffer[i] = buffer[i] ^ (factor1 + factor2)
+    buffer[i] = buffer[i] ^ (factor1 + factor2);
   }
 
   return buffer;
@@ -62,18 +62,18 @@ export function encodePacketTime(buffer: Uint8Array, deviceName: string) {
 export function encodePairingKey(buffer: Uint8Array, unknown_value: number[], g_random_sync_key: number) {
   let new_random_sync_key = g_random_sync_key;
 
-  for(let i = 0; i < buffer.length; i++) {
+  for (let i = 0; i < buffer.length; i++) {
     buffer[i] = buffer[i] ^ unknown_value[0];
     buffer[i] = buffer[i] - new_random_sync_key;
-    buffer[i] = ((buffer[i] >> 4) & 0xF) | ((buffer[i] & 0xF) << 4);
+    buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
 
     buffer[i] = buffer[i] + unknown_value[1];
     buffer[i] = buffer[i] ^ unknown_value[2];
-    buffer[i] = ((buffer[i] >> 4) & 0xF) | ((buffer[i] & 0xF) << 4);
+    buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
 
     buffer[i] = buffer[i] - unknown_value[3];
     buffer[i] = buffer[i] ^ unknown_value[4];
-    buffer[i] = ((buffer[i] >> 4) & 0xF) | ((buffer[i] & 0xF) << 4);
+    buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
 
     buffer[i] = buffer[i] ^ unknown_value[5];
     buffer[i] = buffer[i] ^ new_random_sync_key;
@@ -90,22 +90,22 @@ export function getDescPairingKey(buffer: Uint8Array, unknown_value: number[], g
   // This is the reverse of encodePairingKey :)
   let new_random_sync_key = g_random_sync_key;
 
-  for(let i = 0; i < buffer.length; i++) {
+  for (let i = 0; i < buffer.length; i++) {
     let tmp = buffer[i];
 
     buffer[i] = buffer[i] ^ new_random_sync_key;
     buffer[i] = buffer[i] ^ unknown_value[5];
 
-    buffer[i] = ((buffer[i] >> 4) & 0xF) | ((buffer[i] & 0xF) << 4);
+    buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
     buffer[i] = buffer[i] ^ unknown_value[4];
     buffer[i] = buffer[i] - unknown_value[3];
 
-    buffer[i] = ((buffer[i] >> 4) & 0xF) | ((buffer[i] & 0xF) << 4);
+    buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
     buffer[i] = buffer[i] ^ unknown_value[2];
     buffer[i] = buffer[i] + unknown_value[1];
     buffer[i] = buffer[i] ^ unknown_value[0];
 
-    buffer[i] = ((buffer[i] >> 4) & 0xF) | ((buffer[i] & 0xF) << 4);
+    buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
     buffer[i] = buffer[i] - new_random_sync_key;
 
     // set global random sync key to new_random_sync_key..
@@ -120,10 +120,10 @@ export function encryptionRandomSyncKey(g_random_sync_key: number, unknown_value
   // Unknown values seems to be some kind of data array @ 0x00016168 with len is 4-ish?
   let tmp = 0;
 
-  tmp = ((g_random_sync_key >> 4) | ((g_random_sync_key & 0xF) << 4)) + unknown_values[0];
-  tmp = ((tmp >> 4) | ((tmp & 0xF) << 4)) ^ unknown_values[1];
+  tmp = ((g_random_sync_key >> 4) | ((g_random_sync_key & 0xf) << 4)) + unknown_values[0];
+  tmp = ((tmp >> 4) | ((tmp & 0xf) << 4)) ^ unknown_values[1];
 
-  const new_random_sync_key = ((tmp >> 4) | ((tmp & 0xF) << 4)) - unknown_values[2];
+  const new_random_sync_key = ((tmp >> 4) | ((tmp & 0xf) << 4)) - unknown_values[2];
 
   return new_random_sync_key;
 }
@@ -131,16 +131,10 @@ export function encryptionRandomSyncKey(g_random_sync_key: number, unknown_value
 export function decryptionRandomSyncKey(g_random_sync_key: number, unknown_values: number[]) {
   let tmp = 0;
 
-  tmp = ((g_random_sync_key + unknown_values[2]) >> 4) | (((g_random_sync_key + unknown_values[2]) & 0xF) << 4) ^ unknown_values[1];
-  tmp = ((tmp >> 4) | ((tmp & 0xF) << 4)) - unknown_values[0];
+  tmp = ((g_random_sync_key + unknown_values[2]) >> 4) | ((((g_random_sync_key + unknown_values[2]) & 0xf) << 4) ^ unknown_values[1]);
+  tmp = ((tmp >> 4) | ((tmp & 0xf) << 4)) - unknown_values[0];
 
-  const new_random_sync_key = ((tmp >> 4) | ((tmp & 0xF) << 4));
+  const new_random_sync_key = (tmp >> 4) | ((tmp & 0xf) << 4);
 
   return new_random_sync_key;
-}
-
-// bool checkApp(char*, ? , int)
-export function checkApp(appPackageName: string) {
-  const validPackageNames = [ 'info.nightscout.androidaps', 'info.nightscout.aapspumpcontrol' ];
-  return validPackageNames.indexOf(appPackageName) > -1;
 }
