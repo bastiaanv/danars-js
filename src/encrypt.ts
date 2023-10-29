@@ -1,4 +1,4 @@
-import { encodePacketPassKeySerialNumber, encodePacketSerialNumber } from './common';
+import { encodePacketPassKey, encodePacketPassKeySerialNumber, encodePacketPassword, encodePacketSerialNumber, encodePacketTime } from './common';
 import { generateCrc } from './crc';
 
 export function encrypt(operationCode: number, data: Uint8Array | undefined, deviceName: string, enhancedEncryption: number = 0, unknownValue: number = 0) {
@@ -133,8 +133,7 @@ function encodeDefault(operationCode: number, data: Uint8Array | undefined, devi
 
   if (data && data.length > 0) {
     for (let i = 0; i < data.length; i++) {
-      // TODO:
-      // buffer[5 + i] = encodePacketPassKeySerialNumber(data[i], deviceName);
+      buffer[5 + i] = data[i];
     }
   }
 
@@ -144,9 +143,11 @@ function encodeDefault(operationCode: number, data: Uint8Array | undefined, devi
   buffer[7] = 0x5a; // footer 1
   buffer[8] = 0x5a; // footer 2
 
-  const encrypted1 = encodePacketSerialNumber(buffer, deviceName);
+  let encrypted1 = encodePacketSerialNumber(buffer, deviceName);
   if (enhancedEncryption === 0) {
-    // TODO:
+    encrypted1 = encodePacketTime(encrypted1, deviceName.substring(2));
+    encrypted1 = encodePacketPassword(encrypted1, deviceName.substring(3));
+    encrypted1 = encodePacketPassKey(encrypted1, deviceName.substring(4));
   }
 
   return encrypted1;
