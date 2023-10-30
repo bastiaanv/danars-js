@@ -12,16 +12,24 @@ export class DanaRSEncryption {
   private static randomPairingKey: number[] = [];
   private static randomSyncKey = 0;
 
-  /** Length: 6 */
-  private static ble5key: number[] = [];
   private static ble5RandomKeys: [number, number, number] = [0, 0, 0];
 
+  // Encoding functions -> Encryption in JNI lib
   static encodePacket(operationCode: number, data: Uint8Array | undefined, deviceName: string) {
     return encrypt(operationCode, data, deviceName, this.enhancedEncryption);
   }
 
   static encodeSecondLevel(data: Uint8Array) {
     return encryptSecondLevel(data, this.enhancedEncryption, this.pairingKey, this.randomPairingKey, this.randomSyncKey, this.ble5RandomKeys);
+  }
+
+  // Decoding function -> Decrypting in JNI lib
+  static decodePacket(data: Uint8Array) {
+    throw new Error('Not implemented');
+  }
+
+  static decodeSecondLevel(data: Uint8Array) {
+    throw new Error('Not implemented');
   }
 
   // Setter functions
@@ -41,8 +49,6 @@ export class DanaRSEncryption {
   }
 
   static setBle5Key(ble5Key: number[]) {
-    this.ble5key = ble5Key;
-
     this.ble5RandomKeys = [
       secondLvlEncryptionLookupShort[(ble5Key[0] - 0x30) * 10 + ble5Key[1]],
       secondLvlEncryptionLookupShort[(ble5Key[2] - 0x30) * 10 + ble5Key[3]],
