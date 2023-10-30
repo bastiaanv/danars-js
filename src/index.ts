@@ -1,5 +1,6 @@
 import { decryptionRandomSyncKey, initialRandomSyncKey } from './common';
-import { encrypt } from './encrypt';
+import { encrypt, encryptSecondLevel } from './encrypt';
+import { secondLvlEncryptionLookupShort } from './lookup';
 
 export class DanaRSEncryption {
   private static enhancedEncryption = 0;
@@ -9,20 +10,21 @@ export class DanaRSEncryption {
 
   /** Length: 3 */
   private static randomPairingKey: number[] = [];
-
   private static randomSyncKey = 0;
 
   /** Length: 6 */
   private static ble5key: number[] = [];
-
-  // Used for CRC. Known values are: 0, 1
-  private static unknownValue = 0;
+  private static ble5RandomKeys: [number, number, number] = [0, 0, 0];
 
   static encodePacket(operationCode: number, data: Uint8Array | undefined, deviceName: string) {
-    return encrypt(operationCode, data, deviceName, this.enhancedEncryption, this.unknownValue);
+    return encrypt(operationCode, data, deviceName, this.enhancedEncryption);
   }
 
-  // Common functions
+  static encodeSecondLevel(data: Uint8Array) {
+    return encryptSecondLevel(data, this.enhancedEncryption, this.pairingKey, this.randomPairingKey, this.randomSyncKey, this.ble5RandomKeys);
+  }
+
+  // Setter functions
   static setEnhancedEncryption(enhancedEncryption: number) {
     this.enhancedEncryption = enhancedEncryption;
   }
@@ -41,14 +43,10 @@ export class DanaRSEncryption {
   static setBle5Key(ble5Key: number[]) {
     this.ble5key = ble5Key;
 
-    // TODO: reverse the following:
-    /*
-  DAT_00016178 = *(undefined *)
-                  ((int)&PTR_checkApp_00015fd4 + (*BLE_5_KEY - 0x30) * 10 + (uint)BLE_5_KEY[1]);
-  DAT_00016179 = *(undefined *)
-                  ((int)&PTR_checkApp_00015fd4 + (BLE_5_KEY[2] - 0x30) * 10 + (uint)BLE_5_KEY[3]);
-  DAT_0001617a = *(undefined *)
-                  ((int)&PTR_checkApp_00015fd4 + (BLE_5_KEY[4] - 0x30) * 10 + (uint)BLE_5_KEY[5]);
-    */
+    this.ble5RandomKeys = [
+      secondLvlEncryptionLookupShort[(ble5Key[0] - 0x30) * 10 + ble5Key[1]],
+      secondLvlEncryptionLookupShort[(ble5Key[2] - 0x30) * 10 + ble5Key[3]],
+      secondLvlEncryptionLookupShort[(ble5Key[4] - 0x30) * 10 + ble5Key[5]],
+    ];
   }
 }
