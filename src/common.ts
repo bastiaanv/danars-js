@@ -1,7 +1,7 @@
 // exec_get_enc_packet_passkey(char*, int, char*)
-export function encodePacketPassKey(buffer: Uint8Array, deviceName: string) {
+export function encodePacketPassKey(buffer: Uint8Array, passkeySecret: number[]) {
   for (let i = 0; i < buffer.length - 5; i++) {
-    buffer[i + 3] ^= deviceName.charCodeAt((i + 1) % 2);
+    buffer[i + 3] ^= passkeySecret[(i + 1) % 2];
   }
 
   return buffer;
@@ -18,12 +18,9 @@ export function encodePacketPassKeySerialNumber(value: number, deviceName: strin
 }
 
 // exec_get_enc_packet_password
-export function encodePacketPassword(buffer: Uint8Array, deviceName: string) {
-  const factor1 = deviceName.charCodeAt(0);
-  const factor2 = deviceName.charCodeAt(1);
-
+export function encodePacketPassword(buffer: Uint8Array, passwordSecret: number[]) {
   for (let i = 3; i < buffer.length - 2; i++) {
-    buffer[i] = buffer[i] ^ (factor1 + factor2);
+    buffer[i] = buffer[i] ^ (passwordSecret[0] + passwordSecret[1]);
   }
 
   return buffer;
@@ -45,12 +42,8 @@ export function encodePacketSerialNumber(buffer: Uint8Array, deviceName: string)
 }
 
 // exec_get_enc_packet_time(char*, int, char*)
-export function encodePacketTime(buffer: Uint8Array, deviceName: string) {
-  let tmp = 0;
-  for (let i = 0; i < 6; i++) {
-    tmp += deviceName.charCodeAt(i);
-  }
-
+export function encodePacketTime(buffer: Uint8Array, timeSecret: number[]) {
+  const tmp = timeSecret.reduce((a, b) => a + b, 0);
   for (let i = 3; i < buffer.length - 2; i++) {
     buffer[i] ^= tmp;
   }
