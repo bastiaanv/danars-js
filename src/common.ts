@@ -1,7 +1,7 @@
 // exec_get_enc_packet_passkey(char*, int, char*)
-export function encodePacketPassKey(buffer: Uint8Array, deviceName: string) {
+export function encodePacketPassKey(buffer: Uint8Array, passkeySecret: number[]) {
   for (let i = 0; i < buffer.length - 5; i++) {
-    buffer[i + 3] ^= deviceName.charCodeAt((i + 1) % 2);
+    buffer[i + 3] ^= passkeySecret[(i + 1) % 2];
   }
 
   return buffer;
@@ -18,12 +18,9 @@ export function encodePacketPassKeySerialNumber(value: number, deviceName: strin
 }
 
 // exec_get_enc_packet_password
-export function encodePacketPassword(buffer: Uint8Array, deviceName: string) {
-  const factor1 = deviceName.charCodeAt(0);
-  const factor2 = deviceName.charCodeAt(1);
-
+export function encodePacketPassword(buffer: Uint8Array, passwordSecret: number[]) {
   for (let i = 3; i < buffer.length - 2; i++) {
-    buffer[i] = buffer[i] ^ (factor1 + factor2);
+    buffer[i] = buffer[i] ^ (passwordSecret[0] + passwordSecret[1]);
   }
 
   return buffer;
@@ -45,12 +42,8 @@ export function encodePacketSerialNumber(buffer: Uint8Array, deviceName: string)
 }
 
 // exec_get_enc_packet_time(char*, int, char*)
-export function encodePacketTime(buffer: Uint8Array, deviceName: string) {
-  let tmp = 0;
-  for (let i = 0; i < 6; i++) {
-    tmp += deviceName.charCodeAt(i);
-  }
-
+export function encodePacketTime(buffer: Uint8Array, timeSecret: number[]) {
+  const tmp = timeSecret.reduce((a, b) => a + b, 0);
   for (let i = 3; i < buffer.length - 2; i++) {
     buffer[i] ^= tmp;
   }
@@ -59,24 +52,24 @@ export function encodePacketTime(buffer: Uint8Array, deviceName: string) {
 }
 
 // exec_get_enc_pairingkey(int, int)
-export function encodePairingKey(buffer: Uint8Array, unknown_value: number[], g_random_sync_key: number) {
-  let new_random_sync_key = g_random_sync_key;
+export function encodePairingKey(buffer: Uint8Array, pairingKey: number[], global_random_sync_key: number) {
+  let new_random_sync_key = global_random_sync_key;
 
   for (let i = 0; i < buffer.length; i++) {
-    buffer[i] = buffer[i] ^ unknown_value[0];
-    buffer[i] = buffer[i] - new_random_sync_key;
+    buffer[i] ^= pairingKey[0];
+    buffer[i] -= new_random_sync_key;
     buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
 
-    buffer[i] = buffer[i] + unknown_value[1];
-    buffer[i] = buffer[i] ^ unknown_value[2];
+    buffer[i] += pairingKey[1];
+    buffer[i] ^= pairingKey[2];
     buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
 
-    buffer[i] = buffer[i] - unknown_value[3];
-    buffer[i] = buffer[i] ^ unknown_value[4];
+    buffer[i] -= pairingKey[3];
+    buffer[i] ^= pairingKey[4];
     buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
 
-    buffer[i] = buffer[i] ^ unknown_value[5];
-    buffer[i] = buffer[i] ^ new_random_sync_key;
+    buffer[i] ^= pairingKey[5];
+    buffer[i] ^= new_random_sync_key;
 
     new_random_sync_key = buffer[i];
   }
@@ -86,27 +79,27 @@ export function encodePairingKey(buffer: Uint8Array, unknown_value: number[], g_
 }
 
 // exec_get_desc_pairingkey(char*, int)
-export function getDescPairingKey(buffer: Uint8Array, unknown_value: number[], g_random_sync_key: number) {
+export function getDescPairingKey(buffer: Uint8Array, pairingKey: number[], global_random_sync_key: number) {
   // This is the reverse of encodePairingKey :)
-  let new_random_sync_key = g_random_sync_key;
+  let new_random_sync_key = global_random_sync_key;
 
   for (let i = 0; i < buffer.length; i++) {
-    let tmp = buffer[i];
+    const tmp = buffer[i];
 
-    buffer[i] = buffer[i] ^ new_random_sync_key;
-    buffer[i] = buffer[i] ^ unknown_value[5];
-
-    buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
-    buffer[i] = buffer[i] ^ unknown_value[4];
-    buffer[i] = buffer[i] - unknown_value[3];
+    buffer[i] ^= new_random_sync_key;
+    buffer[i] ^= pairingKey[5];
 
     buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
-    buffer[i] = buffer[i] ^ unknown_value[2];
-    buffer[i] = buffer[i] + unknown_value[1];
-    buffer[i] = buffer[i] ^ unknown_value[0];
+    buffer[i] ^= pairingKey[4];
+    buffer[i] -= pairingKey[3];
 
     buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
-    buffer[i] = buffer[i] - new_random_sync_key;
+    buffer[i] ^= pairingKey[2];
+    buffer[i] += pairingKey[1];
+    buffer[i] ^= pairingKey[0];
+
+    buffer[i] = ((buffer[i] >> 4) & 0xf) | ((buffer[i] & 0xf) << 4);
+    buffer[i] -= new_random_sync_key;
 
     // set global random sync key to new_random_sync_key..
     new_random_sync_key = tmp;
@@ -115,26 +108,29 @@ export function getDescPairingKey(buffer: Uint8Array, unknown_value: number[], g
   return new_random_sync_key;
 }
 
-// encryptionRandomSyncKey(void)
-export function encryptionRandomSyncKey(g_random_sync_key: number, unknown_values: number[]) {
-  // Unknown values seems to be some kind of data array @ 0x00016168 with len is 4-ish?
+export function encryptionRandomSyncKey(randomSyncKey: number, randomPairingKey: number[]) {
   let tmp = 0;
 
-  tmp = ((g_random_sync_key >> 4) | ((g_random_sync_key & 0xf) << 4)) + unknown_values[0];
-  tmp = ((tmp >> 4) | ((tmp & 0xf) << 4)) ^ unknown_values[1];
+  tmp = ((randomSyncKey >> 4) | ((randomSyncKey & 0xf) << 4)) + randomPairingKey[0];
+  tmp = ((tmp >> 4) | ((tmp & 0xf) << 4)) ^ randomPairingKey[1];
 
-  const new_random_sync_key = ((tmp >> 4) | ((tmp & 0xf) << 4)) - unknown_values[2];
-
-  return new_random_sync_key;
+  return ((tmp >> 4) | ((tmp & 0xf) << 4)) - randomPairingKey[2];
 }
 
-export function decryptionRandomSyncKey(g_random_sync_key: number, unknown_values: number[]) {
+export function decryptionRandomSyncKey(randomSyncKey: number, randomPairingKey: number[]) {
   let tmp = 0;
 
-  tmp = ((g_random_sync_key + unknown_values[2]) >> 4) | ((((g_random_sync_key + unknown_values[2]) & 0xf) << 4) ^ unknown_values[1]);
-  tmp = ((tmp >> 4) | ((tmp & 0xf) << 4)) - unknown_values[0];
+  tmp = ((randomSyncKey + randomPairingKey[2]) >> 4) | ((((randomSyncKey + randomPairingKey[2]) & 0xf) << 4) ^ randomPairingKey[1]);
+  tmp = ((tmp >> 4) | ((tmp & 0xf) << 4)) - randomPairingKey[0];
 
-  const new_random_sync_key = (tmp >> 4) | ((tmp & 0xf) << 4);
+  return (tmp >> 4) | ((tmp & 0xf) << 4);
+}
 
-  return new_random_sync_key;
+export function initialRandomSyncKey(pairingKey: number[]) {
+  let tmp = 0;
+
+  tmp = ((pairingKey[0] + pairingKey[1]) >> 4) | (((((pairingKey[0] + pairingKey[1]) & 0xf) << 4) ^ pairingKey[2]) - pairingKey[3]);
+  tmp = ((tmp >> 4) | ((tmp & 0xf) << 4)) ^ pairingKey[4];
+
+  return ((tmp >> 4) | ((tmp & 0xf) << 4)) ^ pairingKey[5];
 }
