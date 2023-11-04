@@ -1,12 +1,18 @@
 {
-  "name": "danars-encryption",
+  "name": "@bastiaanv/danars-encryption",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
-  "author": "",
+  "files": [
+    "dist/",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json"
+  ],
+  "author": "Bastiaan Verhaar",
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^29.5.6",
