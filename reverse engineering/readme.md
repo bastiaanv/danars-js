@@ -8,3 +8,5 @@ How to setup Ghidra:
 6. Scroll down to the JNIAnalyzer.java and select the apk
 7. Wait for the analyzer to complete the APK scan
 8. And done! The project is nicely analyzed and ready for Hacking
+
+(or just install Ghidra and open the `.ghr` file in this folder :D)
