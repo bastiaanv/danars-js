@@ -67,7 +67,7 @@ export class BleComm {
       return;
     }
 
-    return new Promise((resolve, reject) =>
+    return new Promise<void>((resolve, reject) =>
       BluetoothLE.connect({ address, autoConnect: true }).subscribe({
         next: async (connectInfo) => {
           if (connectInfo.status !== 'connected') {
@@ -78,37 +78,43 @@ export class BleComm {
           this.deviceAddress = connectInfo.address;
           this.deviceName = connectInfo.name;
 
-          const device = await BluetoothLE.discover({ address, clearCache: true });
-          const writeService = device.services.find((x) => x.characteristics.some((y) => y.uuid === this.WRITE_CHAR_UUID));
-          if (!writeService) {
-            await BluetoothLE.disconnect({ address });
+          try {
+            const device = await BluetoothLE.discover({ address, clearCache: true });
+            const writeService = device.services.find((x) => x.characteristics.some((y) => y.uuid === this.WRITE_CHAR_UUID));
+            if (!writeService) {
+              await BluetoothLE.disconnect({ address });
 
-            console.error(`${formatPrefix('ERROR')} Could not find write service. Did find these services: ${JSON.stringify(device.services)}`);
-            reject('No write service found...');
-            return;
+              console.error(`${formatPrefix('ERROR')} Could not find write service. Did find these services: ${JSON.stringify(device.services)}`);
+              reject('No write service found...');
+              return;
+            }
+
+            const readService = device.services.find((x) => x.characteristics.some((y) => y.uuid === this.READ_CHAR_UUID));
+            if (!readService) {
+              await BluetoothLE.disconnect({ address });
+
+              console.error(`${formatPrefix('ERROR')} Could not find write service. Did find these services: ${JSON.stringify(device.services)}`);
+              reject('No write service found...');
+              return;
+            }
+
+            this.WRITE_SERVICE_UUID = writeService.uuid;
+            this.READ_SERVICE_UUID = readService.uuid;
+            this.enableNotify(address);
+
+            // Send 1st packet
+            const data = DanaRSEncryption.encodePacket(DANA_PACKET_TYPE.OPCODE_ENCRYPTION__PUMP_CHECK, undefined, this.deviceName);
+            await BluetoothLE.writeQ({
+              address,
+              service: this.WRITE_SERVICE_UUID,
+              characteristic: this.WRITE_CHAR_UUID,
+              value: BluetoothLE.bytesToEncodedString(data),
+            });
+            resolve();
+          } catch (e) {
+            console.error(`${formatPrefix('ERROR')} Error while connecting to device: ${address}`, e);
+            reject(e);
           }
-
-          const readService = device.services.find((x) => x.characteristics.some((y) => y.uuid === this.READ_CHAR_UUID));
-          if (!readService) {
-            await BluetoothLE.disconnect({ address });
-
-            console.error(`${formatPrefix('ERROR')} Could not find write service. Did find these services: ${JSON.stringify(device.services)}`);
-            reject('No write service found...');
-            return;
-          }
-
-          this.WRITE_SERVICE_UUID = writeService.uuid;
-          this.READ_SERVICE_UUID = readService.uuid;
-          this.enableNotify(address);
-
-          // Send 1st packet
-          const data = DanaRSEncryption.encodePacket(DANA_PACKET_TYPE.OPCODE_ENCRYPTION__PUMP_CHECK, undefined, this.deviceName);
-          await BluetoothLE.writeQ({
-            address,
-            service: this.WRITE_SERVICE_UUID,
-            characteristic: this.WRITE_CHAR_UUID,
-            value: BluetoothLE.bytesToEncodedString(data),
-          });
         },
         error: (e) => {
           console.error(`${formatPrefix('ERROR')} Error while connecting to device: ${address}`, e);
@@ -140,7 +146,9 @@ export class BleComm {
     });
   }
 
-  private parseReadData(data: string) {}
+  private parseReadData(dataEncoded: string) {
+    const data = BluetoothLE.encodedStringToBytes(dataEncoded);
+  }
 }
 
 function formatPrefix(level: 'INFO' | 'WARNING' | 'ERROR' = 'INFO') {
