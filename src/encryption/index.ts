@@ -1,3 +1,4 @@
+import { StorageService } from '../storage.service';
 import { decryptionRandomSyncKey, initialRandomSyncKey } from './common';
 import { decrypt, decryptSecondLevel } from './decrypt';
 import { encrypt, encryptSecondLevel } from './encrypt';
@@ -46,8 +47,18 @@ export class DanaRSEncryption {
     return data;
   }
 
-  static encodeSecondLevel(buffer: Uint8Array) {
-    return encryptSecondLevel(buffer, this.enhancedEncryption, this.pairingKey, this.randomPairingKey, this.randomSyncKey, this.ble5RandomKeys);
+  static encodeSecondLevel(data: Uint8Array) {
+    const { randomSyncKey, buffer } = encryptSecondLevel(
+      data,
+      this.enhancedEncryption,
+      this.pairingKey,
+      this.randomPairingKey,
+      this.randomSyncKey,
+      this.ble5RandomKeys
+    );
+    this.randomSyncKey = randomSyncKey;
+
+    return buffer;
   }
 
   // Decoding function -> Decrypting in JNI lib
@@ -76,8 +87,18 @@ export class DanaRSEncryption {
     return decryptionResult.data;
   }
 
-  static decodeSecondLevel(buffer: Uint8Array) {
-    return decryptSecondLevel(buffer, this.enhancedEncryption, this.pairingKey, this.randomPairingKey, this.randomSyncKey, this.ble5RandomKeys);
+  static decodeSecondLevel(data: Uint8Array) {
+    const { buffer, randomSyncKey } = decryptSecondLevel(
+      data,
+      this.enhancedEncryption,
+      this.pairingKey,
+      this.randomPairingKey,
+      this.randomSyncKey,
+      this.ble5RandomKeys
+    );
+    this.randomSyncKey = randomSyncKey;
+
+    return buffer;
   }
 
   // Setter functions
@@ -94,10 +115,18 @@ export class DanaRSEncryption {
     } else {
       this.randomSyncKey = decryptionRandomSyncKey(randomSyncKey, randomPairingKey);
     }
+
+    // Do not need to await this
+    Promise.all([
+      StorageService.setPairingKey(this.pairingKey),
+      StorageService.setRandomPairingKey(this.randomPairingKey),
+      StorageService.setRandomSyncKey(this.randomSyncKey),
+    ]);
   }
 
   static setBle5Key(ble5Key: number[]) {
     this.ble5Key = ble5Key;
+    StorageService.setBle5Key(ble5Key);
 
     this.ble5RandomKeys = [
       secondLvlEncryptionLookupShort[(ble5Key[0] - 0x30) * 10 + ble5Key[1]],
