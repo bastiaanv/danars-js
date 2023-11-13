@@ -1,4 +1,3 @@
-import { StorageService } from '../storage.service';
 import { decryptionRandomSyncKey, initialRandomSyncKey } from './common';
 import { decrypt, decryptSecondLevel } from './decrypt';
 import { encrypt, encryptSecondLevel } from './encrypt';
@@ -115,18 +114,10 @@ export class DanaRSEncryption {
     } else {
       this.randomSyncKey = decryptionRandomSyncKey(randomSyncKey, randomPairingKey);
     }
-
-    // Do not need to await this
-    Promise.all([
-      StorageService.setPairingKey(this.pairingKey),
-      StorageService.setRandomPairingKey(this.randomPairingKey),
-      StorageService.setRandomSyncKey(this.randomSyncKey),
-    ]);
   }
 
   static setBle5Key(ble5Key: number[]) {
     this.ble5Key = ble5Key;
-    StorageService.setBle5Key(ble5Key);
 
     this.ble5RandomKeys = [
       secondLvlEncryptionLookupShort[(ble5Key[0] - 0x30) * 10 + ble5Key[1]],

@@ -1,4 +1,4 @@
-import { DANA_PACKET_TYPE } from '../models/dana.type.message.enum';
+import { DANA_PACKET_TYPE } from '../packets/dana.type.message.enum';
 import { encodePacketPassKey, encodePacketPassKeySerialNumber, encodePacketPassword, encodePacketSerialNumber, encodePacketTime } from './common';
 import { generateCrc } from './crc';
 import { secondLvlEncryptionLookup } from './lookup';

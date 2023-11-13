@@ -27,7 +27,7 @@ export class StorageService {
   }
 
   // Random sync key
-  public static async getRandomSyncKey(): Promise<number | undefined> {
+  public static async getRandomSyncKey(): Promise<number> {
     const { value } = await Preferences.get({ key: RANDOM_SYNC_KEY_KEY });
     return value ? parseInt(value) : 0;
   }
@@ -44,5 +44,14 @@ export class StorageService {
 
   public static async setBle5Key(value: number[]) {
     await Preferences.set({ key: BLE_5_KEY_KEY, value: JSON.stringify(value) });
+  }
+
+  public static async clear() {
+    await Promise.all([
+      Preferences.remove({ key: PAIRING_KEY_KEY }),
+      Preferences.remove({ key: RANDOM_PAIRING_KEY_KEY }),
+      Preferences.remove({ key: RANDOM_SYNC_KEY_KEY }),
+      Preferences.remove({ key: BLE_5_KEY_KEY }),
+    ]);
   }
 }
