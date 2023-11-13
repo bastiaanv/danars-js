@@ -53,6 +53,7 @@ export class BleComm {
   // Device specific fields
   private deviceName = '';
   private deviceAddress = '';
+  private _isConnected = false;
 
   // NOTE: usage of `isEasyMode` and `isUnitUD` is unknown
   private isEasyMode = false;
@@ -70,6 +71,14 @@ export class BleComm {
 
   private get encryptionType() {
     return this._encryptionType;
+  }
+
+  public get isConnected() {
+    return this._isConnected;
+  }
+
+  private set isConnected(value: boolean) {
+    this._isConnected = value;
   }
 
   // Buffers
@@ -132,6 +141,8 @@ export class BleComm {
     BluetoothLE.connect({ address, autoConnect: true }).subscribe({
       next: async (connectInfo) => {
         if (connectInfo.status !== 'connected') {
+          this.isConnected = false;
+
           console.log(`${formatPrefix('WARNING')} Device status for ${connectInfo.name} changed to ${connectInfo.status}`);
           this.connectingSubject.next({
             code: ConnectionEvents.Disconnected,
@@ -150,6 +161,7 @@ export class BleComm {
 
         this.deviceAddress = connectInfo.address;
         this.deviceName = connectInfo.name;
+        this.isConnected = true;
 
         this.connectingSubject.next({ code: ConnectionEvents.DeviceFound });
         try {
