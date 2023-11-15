@@ -141,5 +141,5 @@ export function decryptSecondLevel(
     }
   }
 
-  return randomSyncKey;
+  return { randomSyncKey, buffer };
 }

@@ -1,3 +1,4 @@
+import { DANA_PACKET_TYPE } from '../packets/dana.type.message.enum';
 import { encodePacketPassKey, encodePacketPassKeySerialNumber, encodePacketPassword, encodePacketSerialNumber, encodePacketTime } from './common';
 import { generateCrc } from './crc';
 import { secondLvlEncryptionLookup } from './lookup';
@@ -39,10 +40,6 @@ export function encrypt(options: EncryptParams): { data: Uint8Array; useAdvanced
   }
 }
 
-/**
- * Note: buffer will be edited inline
- * The return value is the new random sync key
- */
 export function encryptSecondLevel(
   buffer: Uint8Array,
   enhancedEncryption: number,
@@ -113,7 +110,7 @@ export function encryptSecondLevel(
     }
   }
 
-  return randomSyncKey;
+  return { randomSyncKey, buffer };
 }
 
 function encodePumpCheckCommand(deviceName: string, enhancedEncryption: number) {
@@ -121,7 +118,7 @@ function encodePumpCheckCommand(deviceName: string, enhancedEncryption: number) 
   buffer[0] = 0xa5; // header 1
   buffer[1] = 0xa5; // header 2
   buffer[2] = 0x0c; // length
-  buffer[3] = 0x01; // request command
+  buffer[3] = DANA_PACKET_TYPE.TYPE_ENCRYPTION_REQUEST;
   buffer[4] = 0x00; // pump_check command
 
   // Device name
@@ -144,7 +141,7 @@ function encodeRequestCommand(operationCode: number, deviceName: string, enhance
   buffer[0] = 0xa5; // header 1
   buffer[1] = 0xa5; // header 2
   buffer[2] = 0x02; // length
-  buffer[3] = 0x01; // request command
+  buffer[3] = DANA_PACKET_TYPE.TYPE_ENCRYPTION_REQUEST;
   buffer[4] = operationCode;
 
   const crc = generateCrc(buffer.subarray(3, 5), enhancedEncryption, true);
@@ -162,7 +159,7 @@ function encodeTimeInformation(data: Uint8Array | undefined, deviceName: string,
   buffer[0] = 0xa5; // header 1
   buffer[1] = 0xa5; // header 2
   buffer[2] = 0x02 + lengthOfData; // length
-  buffer[3] = 0x01; // request command
+  buffer[3] = DANA_PACKET_TYPE.TYPE_ENCRYPTION_REQUEST;
   buffer[4] = 0x01; // time information command
 
   if (data && data.length > 0) {
@@ -192,7 +189,7 @@ function encodeCheckPassKeyCommand(data: Uint8Array | undefined, deviceName: str
   buffer[0] = 0xa5; // header 1
   buffer[1] = 0xa5; // header 2
   buffer[2] = 0x02 + lengthOfData; // length
-  buffer[3] = 0x01; // request command
+  buffer[3] = DANA_PACKET_TYPE.TYPE_ENCRYPTION_REQUEST;
   buffer[4] = 0xd0; // check passkey command
 
   if (data && data.length > 0) {
@@ -216,7 +213,7 @@ function encodeDefault(options: EncryptParams) {
   buffer[0] = 0xa5; // header 1
   buffer[1] = 0xa5; // header 2
   buffer[2] = 0x02 + lengthOfData; // length
-  buffer[3] = 0xa1; // request command
+  buffer[3] = DANA_PACKET_TYPE.TYPE_COMMAND;
   buffer[4] = options.operationCode; // operation code
 
   if (options.data && lengthOfData > 0) {
