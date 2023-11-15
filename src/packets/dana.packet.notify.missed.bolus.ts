@@ -17,7 +17,7 @@ export function parsePacketNotifyMissedBolus(data: Uint8Array): DanaParsePacket<
 
   return {
     success: data[DATA_START] !== 0x01 && data[DATA_START + 1] !== 0x01 && data[DATA_START + 2] !== 0x01 && data[DATA_START + 3] !== 0x01,
-    isNotify: true,
+    notifyType: CommandNotifyMissedBolus,
     data: {
       startTime,
       endTime,

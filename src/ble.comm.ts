@@ -4,6 +4,10 @@ import { ENCRYPTION_TYPE } from './encryption/encryption.type.enum';
 import { ConnectionEvents } from './events/connection.events';
 import { parseMessage } from './packets';
 import { DanaGeneratePacket, DanaParsePacket } from './packets/dana.packet.base';
+import { CommandNotifyAlarm, PacketNotifyAlarm } from './packets/dana.packet.notify';
+import { CommandNotifyDeliveryComplete, PacketNotifyDeliveryComplete } from './packets/dana.packet.notify.delivery.complete';
+import { CommandNotifyDeliveryRateDisplay, PacketNotifyDeliveryRateDisplay } from './packets/dana.packet.notify.delivery.rate.display';
+import { CommandNotifyMissedBolus, PacketNotifyMissedBolus } from './packets/dana.packet.notify.missed.bolus';
 import { DANA_PACKET_TYPE } from './packets/dana.type.message.enum';
 import { StorageService } from './storage.service';
 import { ObjectValues } from './types';
@@ -37,7 +41,20 @@ const deviceNameRegex = new RegExp(/^([a-zA-Z]{3})([0-9]{5})([a-zA-Z]{2})$/);
 export class BleComm {
   // Event emitters
   private readonly connectingSubject = new Subject<ConnectingEvents>();
-  // Constants
+
+  private readonly notificationAlarmSubject = new Subject<DanaParsePacket<PacketNotifyAlarm>>();
+  public readonly notificationAlarm$ = this.notificationAlarmSubject.asObservable();
+
+  private readonly notificationMissedBolusSubject = new Subject<DanaParsePacket<PacketNotifyMissedBolus>>();
+  public readonly notificationMissedBolus$ = this.notificationMissedBolusSubject.asObservable();
+
+  private readonly notificationDeliveryCompleteSubject = new Subject<DanaParsePacket<PacketNotifyDeliveryComplete>>();
+  public readonly notificationDeliveryComplete$ = this.notificationDeliveryCompleteSubject.asObservable();
+
+  private readonly notificationDeliveryRateDisplaySubject = new Subject<DanaParsePacket<PacketNotifyDeliveryRateDisplay>>();
+  public readonly notificationDeliveryRateDisplay$ = this.notificationDeliveryRateDisplaySubject.asObservable();
+
+  // Constant
   private readonly PACKET_START_BYTE = 0xa5;
   private readonly PACKET_END_BYTE = 0x5a;
   private readonly ENCRYPTED_START_BYTE = 0xaa;
@@ -571,8 +588,24 @@ export class BleComm {
       return;
     }
 
-    if (message.isNotify) {
-      throw new Error('Received notification. TODO: Implement flow...');
+    if (message.notifyType) {
+      switch (message.notifyType) {
+        case CommandNotifyMissedBolus:
+          this.notificationMissedBolusSubject.next(message.data as any);
+          return;
+        case CommandNotifyDeliveryRateDisplay:
+          this.notificationDeliveryRateDisplaySubject.next(message.data as any);
+          return;
+        case CommandNotifyDeliveryComplete:
+          this.notificationDeliveryCompleteSubject.next(message.data as any);
+          return;
+        case CommandNotifyAlarm:
+          this.notificationAlarmSubject.next(message.data as any);
+          return;
+        default:
+          console.error(`${formatPrefix('ERROR')} Unknown notification received...`, { message });
+          return;
+      }
     }
 
     const scheduledMessage = this.commScheduler[message.command];

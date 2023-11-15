@@ -12,7 +12,7 @@ export const CommandNotifyAlarm = ((DANA_PACKET_TYPE.TYPE_NOTIFY & 0xff) << 8) +
 export function parsePacketNotifyAlarm(data: Uint8Array): DanaParsePacket<PacketNotifyAlarm> {
   return {
     success: true,
-    isNotify: true,
+    notifyType: CommandNotifyAlarm,
     data: {
       code: data[DATA_START],
       message: DANA_NOTIFY_ALARM[data[DATA_START] as keyof typeof DANA_NOTIFY_ALARM] ?? '',

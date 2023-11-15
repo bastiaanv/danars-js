@@ -36,6 +36,22 @@ export class DanaPump {
     return this.bleComm.isConnected;
   }
 
+  public get notificationAlarm$() {
+    return this.bleComm.notificationAlarm$;
+  }
+
+  public get notificationDeliveryRateDisplay$() {
+    return this.bleComm.notificationDeliveryRateDisplay$;
+  }
+
+  public get notificationDeliveryComplete$() {
+    return this.bleComm.notificationDeliveryComplete$;
+  }
+
+  public get notificationMissedBolus$() {
+    return this.bleComm.notificationMissedBolus$;
+  }
+
   private async init() {
     await this.bleComm.init();
   }

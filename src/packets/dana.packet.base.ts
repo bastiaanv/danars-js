@@ -9,7 +9,7 @@ export interface DanaGeneratePacket {
 
 export interface DanaParsePacket<T = undefined> {
   success: boolean;
-  isNotify?: boolean;
+  notifyType?: number;
   data: T;
 }
 

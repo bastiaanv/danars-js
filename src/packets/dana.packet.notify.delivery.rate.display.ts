@@ -10,7 +10,7 @@ export const CommandNotifyDeliveryRateDisplay = ((DANA_PACKET_TYPE.TYPE_NOTIFY &
 export function parsePacketNotifyDeliveryRateDisplay(data: Uint8Array): DanaParsePacket<PacketNotifyDeliveryRateDisplay> {
   return {
     success: true,
-    isNotify: true,
+    notifyType: CommandNotifyDeliveryRateDisplay,
     data: {
       deliveredInsulin: uint8ArrayToNumber(data, DATA_START, 2) / 100,
     },

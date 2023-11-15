@@ -10,7 +10,7 @@ export const CommandNotifyDeliveryComplete = ((DANA_PACKET_TYPE.TYPE_NOTIFY & 0x
 export function parsePacketNotifyDeliveryComplete(data: Uint8Array): DanaParsePacket<PacketNotifyDeliveryComplete> {
   return {
     success: true,
-    isNotify: true,
+    notifyType: CommandNotifyDeliveryComplete,
     data: {
       deliveredInsulin: uint8ArrayToNumber(data, DATA_START, 2) / 100,
     },
