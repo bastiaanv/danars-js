@@ -12,7 +12,7 @@ import { generatePacketBolusStop } from './packets/dana.packet.bolus.stop';
 import { generatePacketLoopSetEventHistory } from './packets/dana.packet.loop.set.event.history';
 import { DanaHistoryEntryType } from './packets/dana.type.loop.history.entry.enum';
 
-export class DanaPump {
+export default class DanaPump {
   private bleComm: BleComm;
 
   public hwModel = -1;
