@@ -50,6 +50,9 @@ import { generatePacketLoopSetEventHistory } from '../../src/packets/dana.packet
 import { generatePacketLoopSetTemporaryBasal } from '../../src/packets/dana.packet.loop.set.temporary.basal';
 import { LoopHistoryEvents } from '../../src/packets/dana.type.loop.history.events.enum';
 
+// Fix timezone issues in CI
+process.env.TZ = 'Europe/Amsterdam';
+
 describe('Generate packet tests (snapshot way)', () => {
   it('Should generate basalCancelTemp', () => {
     const packet = generatePacketBasalCancelTemporary();
