@@ -64,6 +64,14 @@ export default class DanaPump {
     return this.bleComm.connect(address);
   }
 
+  public disconnect() {
+    if (!this.isConnected) {
+      return;
+    }
+
+    return this.bleComm.disconnect();
+  }
+
   public startScan() {
     return this.bleComm.startScan();
   }

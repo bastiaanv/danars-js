@@ -119,10 +119,10 @@ export class DanaRSEncryption {
   static setBle5Key(ble5Key: number[]) {
     this.ble5Key = ble5Key;
 
-    this.ble5RandomKeys = [
-      secondLvlEncryptionLookupShort[(ble5Key[0] - 0x30) * 10 + ble5Key[1]],
-      secondLvlEncryptionLookupShort[(ble5Key[2] - 0x30) * 10 + ble5Key[3]],
-      secondLvlEncryptionLookupShort[(ble5Key[4] - 0x30) * 10 + ble5Key[5]],
-    ];
+    const i1 = (ble5Key[0] - 0x30) * 10 + (ble5Key[1] - 0x30);
+    const i2 = (ble5Key[2] - 0x30) * 10 + (ble5Key[3] - 0x30);
+    const i3 = (ble5Key[4] - 0x30) * 10 + (ble5Key[5] - 0x30);
+
+    this.ble5RandomKeys = [secondLvlEncryptionLookupShort[i1], secondLvlEncryptionLookupShort[i2], secondLvlEncryptionLookupShort[i3]];
   }
 }

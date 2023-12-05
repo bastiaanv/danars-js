@@ -9,11 +9,11 @@ export interface PacketBolusStart {
 
 export const CommandBolusStart = ((DANA_PACKET_TYPE.TYPE_RESPONSE & 0xff) << 8) + (DANA_PACKET_TYPE.OPCODE_BOLUS__SET_STEP_BOLUS_START & 0xff);
 export function generatePacketBolusStart(options: PacketBolusStart): DanaGeneratePacket {
-  options.amount = Math.floor(options.amount * 100);
+  const bolusRate = Math.floor(options.amount * 100);
   const data = new Uint8Array(3);
-  data[0] = options.amount & 0xff;
-  data[1] = (options.amount >> 8) & 0xff;
-  data[2] = options.speed;
+  data[0] = bolusRate & 0xff;
+  data[1] = (bolusRate >> 8) & 0xff;
+  data[2] = speedToOrdinal(options.speed);
 
   return {
     opCode: DANA_PACKET_TYPE.OPCODE_BOLUS__SET_STEP_BOLUS_START,
@@ -21,6 +21,26 @@ export function generatePacketBolusStart(options: PacketBolusStart): DanaGenerat
   };
 }
 
+function speedToOrdinal(speed: BolusSpeed) {
+  if (speed === 12) {
+    return 0;
+  } else if (speed === 30) {
+    return 1;
+  } else if (speed === 60) {
+    return 2;
+  } else {
+    throw new Error('Invalid bolus speed');
+  }
+}
+
+/**
+ * Error codes:
+ * 0x04 => Bolus timeout active
+ * 0x10 => Max bolus violation
+ * 0x20 => Command error
+ * 0x40 => Speed error
+ * 0x80 => Insulin limit violation
+ */
 export function parsePacketBolusStart(data: Uint8Array): DanaParsePacket {
   return {
     success: data[DATA_START] === 0,

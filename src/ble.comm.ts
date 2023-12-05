@@ -42,16 +42,16 @@ export class BleComm {
   // Event emitters
   private readonly connectingSubject = new Subject<ConnectingEvents>();
 
-  private readonly notificationAlarmSubject = new Subject<DanaParsePacket<PacketNotifyAlarm>>();
+  private readonly notificationAlarmSubject = new Subject<PacketNotifyAlarm>();
   public readonly notificationAlarm$ = this.notificationAlarmSubject.asObservable();
 
-  private readonly notificationMissedBolusSubject = new Subject<DanaParsePacket<PacketNotifyMissedBolus>>();
+  private readonly notificationMissedBolusSubject = new Subject<PacketNotifyMissedBolus>();
   public readonly notificationMissedBolus$ = this.notificationMissedBolusSubject.asObservable();
 
-  private readonly notificationDeliveryCompleteSubject = new Subject<DanaParsePacket<PacketNotifyDeliveryComplete>>();
+  private readonly notificationDeliveryCompleteSubject = new Subject<PacketNotifyDeliveryComplete>();
   public readonly notificationDeliveryComplete$ = this.notificationDeliveryCompleteSubject.asObservable();
 
-  private readonly notificationDeliveryRateDisplaySubject = new Subject<DanaParsePacket<PacketNotifyDeliveryRateDisplay>>();
+  private readonly notificationDeliveryRateDisplaySubject = new Subject<PacketNotifyDeliveryRateDisplay>();
   public readonly notificationDeliveryRateDisplay$ = this.notificationDeliveryRateDisplaySubject.asObservable();
 
   // Constant
@@ -60,11 +60,11 @@ export class BleComm {
   private readonly ENCRYPTED_START_BYTE = 0xaa;
   private readonly ENCRYPTED_END_BYTE = 0xee;
 
-  private READ_SERVICE_UUID = '';
+  private readonly READ_SERVICE_UUID = 'FFF0';
   private readonly READ_CHAR_UUID = 'FFF1';
   // private readonly BLE5_DESCRIPTOR_UUID = '00002902-0000-1000-8000-00805f9b34fb';
 
-  private WRITE_SERVICE_UUID = '';
+  private readonly WRITE_SERVICE_UUID = 'FFF0';
   private readonly WRITE_CHAR_UUID = 'FFF2';
 
   // Device specific fields
@@ -206,8 +206,6 @@ export class BleComm {
             return;
           }
 
-          this.WRITE_SERVICE_UUID = writeService.uuid;
-          this.READ_SERVICE_UUID = readService.uuid;
           console.log(`${formatPrefix()} Discovery completed!`, { device });
 
           await this.enableNotify(address);
@@ -233,7 +231,8 @@ export class BleComm {
   }
 
   public async writeMessage(packet: DanaGeneratePacket) {
-    if (this.commScheduler[packet.opCode]) {
+    const command = (((packet.type || DANA_PACKET_TYPE.TYPE_RESPONSE) & 0xff) << 8) + (packet.opCode & 0xff);
+    if (this.commScheduler[command]) {
       throw new Error('This message is not done processing...');
     }
 
@@ -265,7 +264,7 @@ export class BleComm {
         reject();
       }, 5000);
 
-      this.commScheduler[packet.opCode + (packet.type ?? DANA_PACKET_TYPE.TYPE_RESPONSE)] = {
+      this.commScheduler[command] = {
         callback: (data: DanaParsePacket<unknown>) => resolve(data),
         timeout,
       };
@@ -305,9 +304,7 @@ export class BleComm {
     let data = BluetoothLE.encodedStringToBytes(dataEncoded);
 
     if (this.isConnected && this.encryptionType !== ENCRYPTION_TYPE.DEFAULT) {
-      const secondLvlEncrypted = structuredClone(data);
       data = DanaRSEncryption.decodeSecondLevel(data);
-      console.log(`${formatPrefix()} Decrypted second level data...`, { encrypted: secondLvlEncrypted, decrypted: data });
     }
 
     this.readBuffer = new Uint8Array([...this.readBuffer, ...data]);
@@ -357,10 +354,9 @@ export class BleComm {
     const decryptedData = DanaRSEncryption.decodePacket(structuredClone(this.readBuffer), this.deviceName);
     this.readBuffer = new Uint8Array();
 
-    const encryptionMessage = decryptedData[0] === DANA_PACKET_TYPE.TYPE_ENCRYPTION_RESPONSE;
-    console.log(`${formatPrefix()} Decoding successful! Start processing ${encryptionMessage ? 'encryption' : 'normal'} message`, decryptedData);
+    if (decryptedData[0] === DANA_PACKET_TYPE.TYPE_ENCRYPTION_RESPONSE) {
+      console.log(`${formatPrefix()} Decoding successful! Start processing encryption message`, decryptedData);
 
-    if (encryptionMessage) {
       switch (decryptedData[1]) {
         case DANA_PACKET_TYPE.OPCODE_ENCRYPTION__PUMP_CHECK:
           this.processConnectResponse(decryptedData);
@@ -394,8 +390,13 @@ export class BleComm {
       }
     }
 
-    // Received a non-encryption message
-    this.processMessage(decryptedData);
+    if (decryptedData[0] === DANA_PACKET_TYPE.TYPE_RESPONSE || decryptedData[0] === DANA_PACKET_TYPE.TYPE_NOTIFY) {
+      console.log(`${formatPrefix()} Decoding successful! Start processing normal (or notify) message`, decryptedData);
+      this.processMessage(decryptedData);
+      return;
+    }
+
+    console.warn(`${formatPrefix('WARNING')} Unknown message type received...`, { decryptedData });
   }
 
   private sendTimeInfo() {
@@ -512,7 +513,7 @@ export class BleComm {
       this.pump.protocol = data[7];
 
       const ble5Keys = Array.from(data.subarray(8, 14));
-      if (data[8] !== 0) {
+      if (ble5Keys[0] !== 0) {
         await StorageService.setBle5Key(ble5Keys);
       }
 
@@ -636,7 +637,10 @@ export class BleComm {
     }
 
     scheduledMessage.callback(message);
+
+    // Clear scheduler
     clearTimeout(scheduledMessage.timeout);
+    delete this.commScheduler[message.command];
   }
 
   private async writeQ(data: Uint8Array) {
@@ -651,7 +655,7 @@ export class BleComm {
     });
   }
 
-  private async disconnect(address?: string | undefined) {
+  public async disconnect(address?: string | undefined) {
     await BluetoothLE.disconnect({ address: address || this.deviceAddress });
     await BluetoothLE.close({ address: address || this.deviceAddress });
 

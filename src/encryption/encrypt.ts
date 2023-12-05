@@ -103,7 +103,7 @@ export function encryptSecondLevel(
 
     for (let i = 0; i < buffer.length; i++) {
       buffer[i] += bleRandomKeys[0];
-      buffer[i] = ((buffer[i] >> 4) & 0xf) | (((buffer[i] & 0xf) << 4) & 0xff);
+      buffer[i] = ((buffer[i] >> 4) & 0x0f) | (((buffer[i] & 0x0f) << 4) & 0xf0);
 
       buffer[i] -= bleRandomKeys[1];
       buffer[i] ^= bleRandomKeys[2];
@@ -223,10 +223,10 @@ function encodeDefault(options: EncryptParams) {
   }
 
   const crc = generateCrc(buffer.subarray(3, 5 + lengthOfData), options.enhancedEncryption, false);
-  buffer[5] = (crc >> 8) & 0xff; // crc 1
-  buffer[6] = crc & 0xff; // crc 2
-  buffer[7] = 0x5a; // footer 1
-  buffer[8] = 0x5a; // footer 2
+  buffer[5 + lengthOfData] = (crc >> 8) & 0xff; // crc 1
+  buffer[6 + lengthOfData] = crc & 0xff; // crc 2
+  buffer[7 + lengthOfData] = 0x5a; // footer 1
+  buffer[8 + lengthOfData] = 0x5a; // footer 2
 
   let encrypted1 = encodePacketSerialNumber(buffer, options.deviceName);
   if (options.enhancedEncryption === 0) {
