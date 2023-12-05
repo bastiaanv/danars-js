@@ -9,10 +9,14 @@ import { generatePacketBasalSetProfileRate } from './packets/dana.packet.basal.s
 import { generatePacketBasalSetTemporary } from './packets/dana.packet.basal.set.temporary';
 import { generatePacketBolusStart } from './packets/dana.packet.bolus.start';
 import { generatePacketBolusStop } from './packets/dana.packet.bolus.stop';
+import {
+  PacketGeneralGetInitialScreenInformation,
+  generatePacketGeneralGetInitialScreenInformation,
+} from './packets/dana.packet.general.get.initial.screen.information';
 import { generatePacketLoopSetEventHistory } from './packets/dana.packet.loop.set.event.history';
 import { DanaHistoryEntryType } from './packets/dana.type.loop.history.entry.enum';
 
-export class DanaPump {
+export default class DanaPump {
   private bleComm: BleComm;
 
   public hwModel = -1;
@@ -66,6 +70,17 @@ export class DanaPump {
 
   public stopScan() {
     return this.bleComm.stopScan();
+  }
+
+  public async getInitialState() {
+    const request = generatePacketGeneralGetInitialScreenInformation();
+    const response = await this.bleComm.writeMessage(request);
+    if (!response.success) {
+      console.error(`${formatPrefix('ERROR')} Failed to do bolus...`, response);
+      throw new Error('Failed to do bolus...');
+    }
+
+    return response.data as PacketGeneralGetInitialScreenInformation;
   }
 
   public async bolusStart(options: BolusStartModel) {

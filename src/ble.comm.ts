@@ -1,14 +1,14 @@
-import { DanaPump } from '.';
-import { DanaRSEncryption } from './encryption';
 import { ENCRYPTION_TYPE } from './encryption/encryption.type.enum';
+import { DanaRSEncryption } from './encryption/index';
 import { ConnectionEvents } from './events/connection.events';
-import { parseMessage } from './packets';
+import DanaPump from './index';
 import { DanaGeneratePacket, DanaParsePacket } from './packets/dana.packet.base';
 import { CommandNotifyAlarm, PacketNotifyAlarm } from './packets/dana.packet.notify';
 import { CommandNotifyDeliveryComplete, PacketNotifyDeliveryComplete } from './packets/dana.packet.notify.delivery.complete';
 import { CommandNotifyDeliveryRateDisplay, PacketNotifyDeliveryRateDisplay } from './packets/dana.packet.notify.delivery.rate.display';
 import { CommandNotifyMissedBolus, PacketNotifyMissedBolus } from './packets/dana.packet.notify.missed.bolus';
 import { DANA_PACKET_TYPE } from './packets/dana.type.message.enum';
+import { parseMessage } from './packets/index';
 import { StorageService } from './storage.service';
 import { ObjectValues } from './types';
 import { BluetoothLE } from '@awesome-cordova-plugins/bluetooth-le';
@@ -61,11 +61,11 @@ export class BleComm {
   private readonly ENCRYPTED_END_BYTE = 0xee;
 
   private READ_SERVICE_UUID = '';
-  private readonly READ_CHAR_UUID = '0000fff1-0000-1000-8000-00805f9b34fb';
+  private readonly READ_CHAR_UUID = 'FFF1';
   // private readonly BLE5_DESCRIPTOR_UUID = '00002902-0000-1000-8000-00805f9b34fb';
 
   private WRITE_SERVICE_UUID = '';
-  private readonly WRITE_CHAR_UUID = '0000fff2-0000-1000-8000-00805f9b34fb';
+  private readonly WRITE_CHAR_UUID = 'FFF2';
 
   // Device specific fields
   private deviceName = '';
@@ -140,7 +140,9 @@ export class BleComm {
   }
 
   public startScan() {
-    return BluetoothLE.startScan({ isConnectable: true }).pipe(filter((x) => x.status === 'scanResult' && !!x.name && deviceNameRegex.test(x.name)));
+    return BluetoothLE.startScan({ isConnectable: true, allowDuplicates: false }).pipe(
+      filter((x) => x.status === 'scanResult' && !!x.name && deviceNameRegex.test(x.name))
+    );
   }
 
   public stopScan() {
@@ -148,17 +150,21 @@ export class BleComm {
   }
 
   public async connect(address: string) {
-    if ((await BluetoothLE.isConnected({ address })).isConnected) {
+    // Catch the "neverConnected"-exception
+    if ((await BluetoothLE.isConnected({ address }).catch(() => ({ isConnected: false }))).isConnected) {
       console.warn(`${formatPrefix('WARNING')} Already connected to device: ${address}`);
       return;
     }
 
     this.encryptionType = ENCRYPTION_TYPE.DEFAULT;
 
+    console.log(`${formatPrefix()} Connecting to device...`, { address });
     BluetoothLE.connect({ address, autoConnect: true }).subscribe({
       next: async (connectInfo) => {
         if (connectInfo.status !== 'connected') {
           this.isConnected = false;
+
+          await BluetoothLE.close({ address });
 
           console.log(`${formatPrefix('WARNING')} Device status for ${connectInfo.name} changed to ${connectInfo.status}`);
           this.connectingSubject.next({
@@ -178,12 +184,11 @@ export class BleComm {
 
         this.deviceAddress = connectInfo.address;
         this.deviceName = connectInfo.name;
-        this.isConnected = true;
 
         this.connectingSubject.next({ code: ConnectionEvents.DeviceFound });
         try {
           const device = await BluetoothLE.discover({ address, clearCache: true });
-          const writeService = device.services.find((x) => x.characteristics.some((y) => y.uuid === this.WRITE_CHAR_UUID));
+          const writeService = device.services.find((x) => x.characteristics.some((y) => y.uuid.toUpperCase() === this.WRITE_CHAR_UUID));
           if (!writeService) {
             await this.disconnect(address);
 
@@ -192,7 +197,7 @@ export class BleComm {
             return;
           }
 
-          const readService = device.services.find((x) => x.characteristics.some((y) => y.uuid === this.READ_CHAR_UUID));
+          const readService = device.services.find((x) => x.characteristics.some((y) => y.uuid.toUpperCase() === this.READ_CHAR_UUID));
           if (!readService) {
             await this.disconnect(address);
 
@@ -203,7 +208,9 @@ export class BleComm {
 
           this.WRITE_SERVICE_UUID = writeService.uuid;
           this.READ_SERVICE_UUID = readService.uuid;
-          this.enableNotify(address);
+          console.log(`${formatPrefix()} Discovery completed!`, { device });
+
+          await this.enableNotify(address);
 
           // Send 1st packet
           const data = DanaRSEncryption.encodePacket(DANA_PACKET_TYPE.OPCODE_ENCRYPTION__PUMP_CHECK, undefined, this.deviceName);
@@ -215,8 +222,9 @@ export class BleComm {
           this.connectingSubject.next({ code: ConnectionEvents.FailedConnecting, message: ' Error while connecting to device...' });
         }
       },
-      error: (e) => {
+      error: async (e) => {
         console.error(`${formatPrefix('ERROR')} Error while connecting to device: ${address}`, e);
+        await BluetoothLE.close({ address });
         this.connectingSubject.next({ code: ConnectionEvents.FailedConnecting, message: ' Error while connecting to device...' });
       },
     });
@@ -233,8 +241,9 @@ export class BleComm {
 
     let data = DanaRSEncryption.encodePacket(packet.opCode, packet.data, this.deviceName);
     if (this.encryptionType !== ENCRYPTION_TYPE.DEFAULT) {
-      console.log(`${formatPrefix()} Encrypt second level`, { data, encryptionType: this.encryptionType });
+      const firstLvlEncryption = structuredClone(data);
       data = DanaRSEncryption.encodeSecondLevel(data);
+      console.log(`${formatPrefix()} Encrypted second level`, { firstLvl: firstLvlEncryption, secondLvl: data, encryptionType: this.encryptionType });
     }
 
     while (data.length !== 0) {
@@ -254,7 +263,7 @@ export class BleComm {
         console.error(`${formatPrefix('ERROR')} Send message timeout hit! Disconnecting from device...`, packet);
         this.disconnect();
         reject();
-      });
+      }, 5000);
 
       this.commScheduler[packet.opCode + (packet.type ?? DANA_PACKET_TYPE.TYPE_RESPONSE)] = {
         callback: (data: DanaParsePacket<unknown>) => resolve(data),
@@ -269,27 +278,36 @@ export class BleComm {
       throw new Error('No read service found in device...');
     }
 
-    BluetoothLE.subscribe({ address, service: this.READ_SERVICE_UUID, characteristic: this.READ_SERVICE_UUID }).subscribe({
-      next: (result) => {
-        if (result.status !== 'subscribedResult') {
-          return;
-        }
+    return new Promise<void>((resolve) => {
+      BluetoothLE.subscribe({ address, service: this.READ_SERVICE_UUID, characteristic: this.READ_CHAR_UUID }).subscribe({
+        next: (result) => {
+          if (result.status === 'subscribed') {
+            console.log(`${formatPrefix()} Subscribed to data!`);
+            resolve();
+            return;
+          }
 
-        console.log(`${formatPrefix()} Received data via subscription: ${result.value}`);
-        this.parseReadData(result.value);
-      },
-      error: (e) => {
-        console.error(`${formatPrefix('ERROR')} Error during subscribing to service: ${this.READ_SERVICE_UUID}, char: ${this.READ_CHAR_UUID}`, e);
-      },
+          if (result.status !== 'subscribedResult') {
+            return;
+          }
+
+          console.log(`${formatPrefix()} Received data via subscription`, result.value);
+          this.parseReadData(result.value);
+        },
+        error: (e) => {
+          console.error(`${formatPrefix('ERROR')} Error during subscribing to service: ${this.READ_SERVICE_UUID}, char: ${this.READ_CHAR_UUID}`, e);
+        },
+      });
     });
   }
 
   private parseReadData(dataEncoded: string) {
     let data = BluetoothLE.encodedStringToBytes(dataEncoded);
 
-    if (this.encryptionType !== ENCRYPTION_TYPE.DEFAULT) {
-      console.log(`${formatPrefix()} Decrypting second level data...`, data.subarray());
+    if (this.isConnected && this.encryptionType !== ENCRYPTION_TYPE.DEFAULT) {
+      const secondLvlEncrypted = structuredClone(data);
       data = DanaRSEncryption.decodeSecondLevel(data);
+      console.log(`${formatPrefix()} Decrypted second level data...`, { encrypted: secondLvlEncrypted, decrypted: data });
     }
 
     this.readBuffer = new Uint8Array([...this.readBuffer, ...data]);
@@ -311,7 +329,7 @@ export class BleComm {
         this.readBuffer = this.readBuffer.subarray(index);
       } else {
         // Invalid packets received...
-        console.error(`${formatPrefix('ERROR')} Received invalid packets. Starting bytes do not exists...`, this.readBuffer.subarray());
+        console.error(`${formatPrefix('ERROR')} Received invalid packets. Starting bytes do not exists...`, structuredClone(this.readBuffer));
         this.readBuffer = new Uint8Array();
         return;
       }
@@ -328,15 +346,15 @@ export class BleComm {
       !(this.readBuffer[length + 6] === this.PACKET_END_BYTE || this.readBuffer[length + 6] === this.ENCRYPTED_END_BYTE)
     ) {
       // Invalid packets received...
-      console.error(`${formatPrefix('ERROR')} Received invalid packets. Ending bytes do not match...`, this.readBuffer.subarray());
+      console.error(`${formatPrefix('ERROR')} Received invalid packets. Ending bytes do not match...`, structuredClone(this.readBuffer));
       this.readBuffer = new Uint8Array();
       return;
     }
 
     // Ready to process the received message!
-    console.log(`${formatPrefix()} Received message! Starting to decrypt data...`, this.readBuffer.subarray());
+    console.log(`${formatPrefix()} Received message! Starting to decrypt data...`, structuredClone(this.readBuffer));
 
-    const decryptedData = DanaRSEncryption.decodePacket(this.readBuffer.subarray(), this.deviceName);
+    const decryptedData = DanaRSEncryption.decodePacket(structuredClone(this.readBuffer), this.deviceName);
     this.readBuffer = new Uint8Array();
 
     const encryptionMessage = decryptedData[0] === DANA_PACKET_TYPE.TYPE_ENCRYPTION_RESPONSE;
@@ -533,6 +551,7 @@ export class BleComm {
 
   private async processEncryptionResponse(data: Uint8Array) {
     if (this.encryptionType === ENCRYPTION_TYPE.BLE_5) {
+      this.isConnected = true;
       console.log(`${formatPrefix()} Connection successful!`, { address: this.deviceAddress, name: this.deviceName });
       this.connectingSubject.next({ code: ConnectionEvents.Connected });
     } else if (this.encryptionType === ENCRYPTION_TYPE.RSv3) {
@@ -546,6 +565,7 @@ export class BleComm {
           return;
         }
 
+        this.isConnected = true;
         console.log(`${formatPrefix()} Connection successful!`, { address: this.deviceAddress, name: this.deviceName });
         this.connectingSubject.next({ code: ConnectionEvents.Connected });
       } else {
@@ -561,6 +581,7 @@ export class BleComm {
         return;
       }
 
+      this.isConnected = true;
       console.log(`${formatPrefix()} Connection successful!`, { address: this.deviceAddress, name: this.deviceName });
       this.connectingSubject.next({ code: ConnectionEvents.Connected });
     }
@@ -619,16 +640,22 @@ export class BleComm {
   }
 
   private async writeQ(data: Uint8Array) {
-    await BluetoothLE.writeQ({
+    console.log(`${formatPrefix()} Writing data...`, { data });
+
+    await BluetoothLE.write({
       address: this.deviceAddress,
       service: this.WRITE_SERVICE_UUID,
       characteristic: this.WRITE_CHAR_UUID,
       value: BluetoothLE.bytesToEncodedString(data),
+      type: 'noResponse',
     });
   }
 
   private async disconnect(address?: string | undefined) {
     await BluetoothLE.disconnect({ address: address || this.deviceAddress });
+    await BluetoothLE.close({ address: address || this.deviceAddress });
+
+    console.log(`${formatPrefix('WARNING')} Disconnected from device...`, { name: this.deviceName, address: address || this.deviceAddress });
 
     this.deviceAddress = '';
     this.deviceName = '';

@@ -29,12 +29,12 @@ export function decrypt(options: DecryptParam) {
     throw new Error(`Package length does not match the length attr. Got: ${options.data.length - 7}, expected: ${options.data[2]}`);
   }
 
-  const crc = generateCrc(options.data.subarray(3, options.data[2]), options.enhancedEncryption, options.useAdvancedEncryptionMode);
+  const content = options.data.subarray(3, options.data[2] + 3);
+  const crc = generateCrc(content, options.enhancedEncryption, options.useAdvancedEncryptionMode);
   if (crc >> 8 !== options.data[options.data.length - 4] || (crc & 0xff) !== options.data[options.data.length - 3]) {
     throw new Error('Crc checksum failed...');
   }
 
-  const content = options.data.subarray(3, options.data.length - 7);
   if (content[0] === 0x2 && content[1] == 0xd0 && content[2] === 0x0) {
     // Response for DANAR_PACKET__OPCODE_ENCRYPTION__CHECK_PASSKEY
     options.passKeySecret = options.passKeySecretBackup;

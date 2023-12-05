@@ -126,7 +126,7 @@ function encodePumpCheckCommand(deviceName: string, enhancedEncryption: number) 
     buffer[5 + i] = deviceName.charCodeAt(i);
   }
 
-  const crc = generateCrc(buffer.subarray(3, 14), enhancedEncryption, true);
+  const crc = generateCrc(buffer.subarray(3, 15), enhancedEncryption, true);
   buffer[15] = (crc >> 8) & 0xff; // crc 1
   buffer[16] = crc & 0xff; // crc 2
 
