@@ -1,3 +1,5 @@
+import { toUint16 } from './utils';
+
 export function generateCrc(buffer: Uint8Array, enhancedEncryption: number, isEncryptionCommand: boolean) {
   let crc = 0;
 
@@ -31,8 +33,4 @@ export function generateCrc(buffer: Uint8Array, enhancedEncryption: number, isEn
   }
 
   return crc;
-}
-
-function toUint16(value: number) {
-  return value & 0xffff;
 }

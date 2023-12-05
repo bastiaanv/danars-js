@@ -2,24 +2,25 @@
   "name": "@bastiaanv/danars-js",
   "version": "1.0.3",
   "description": "",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/plugin.cjs.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "unpkg": "dist/plugin.js",
+  "type": "module",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && rollup --config rollup.config.js",
     "check": "tsc --noEmit --skipLibCheck"
   },
-  "files": [
-    "dist/",
-    "package.json",
-    "package-lock.json",
-    "tsconfig.json"
-  ],
   "author": "Bastiaan Verhaar",
   "license": "ISC",
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/jest": "^29.5.6",
     "jest": "^29.7.0",
+    "rollup": "^4.6.1",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2"
   },
