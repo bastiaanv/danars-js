@@ -291,7 +291,7 @@ export class BleComm {
             return;
           }
 
-          console.log(`${formatPrefix()} Received data via subscription`, result.value);
+          console.log(`${formatPrefix()} Received data via subscription: ${result.value}`);
           this.parseReadData(result.value);
         },
         error: (e) => {
