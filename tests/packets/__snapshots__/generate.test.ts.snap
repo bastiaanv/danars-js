@@ -1,0 +1,860 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Generate packet tests (snapshot way) Should generate basalCancelTemp 1`] = `
+{
+  "data": undefined,
+  "opCode": 98,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate basalGetProfileNumber 1`] = `
+{
+  "data": undefined,
+  "opCode": 101,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate basalGetRate 1`] = `
+{
+  "data": undefined,
+  "opCode": 103,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate basalSetProfileNumber 1`] = `
+{
+  "data": Uint8Array [
+    0,
+  ],
+  "opCode": 100,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate basalSetProfileRate 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+    50,
+    0,
+  ],
+  "opCode": 102,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate basalSetSuspendOff 1`] = `
+{
+  "data": undefined,
+  "opCode": 106,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate basalSetSuspendOn 1`] = `
+{
+  "data": undefined,
+  "opCode": 105,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate basalSetTemporary 1`] = `
+{
+  "data": Uint8Array [
+    200,
+    1,
+  ],
+  "opCode": 96,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusCancelExtended 1`] = `
+{
+  "data": undefined,
+  "opCode": 73,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusGet24Circf 1`] = `
+{
+  "data": undefined,
+  "opCode": 82,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusGetCalculationInformation 1`] = `
+{
+  "data": undefined,
+  "opCode": 75,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusGetCircf 1`] = `
+{
+  "data": undefined,
+  "opCode": 78,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusGetOption 1`] = `
+{
+  "data": undefined,
+  "opCode": 80,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusGetStepOptionInformation 1`] = `
+{
+  "data": undefined,
+  "opCode": 64,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusSet24Circf (mmol/L) 1`] = `
+{
+  "data": Uint8Array [
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+    150,
+    0,
+  ],
+  "opCode": 83,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusSet24Circf 1`] = `
+{
+  "data": Uint8Array [
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+  ],
+  "opCode": 83,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusSetExtended 1`] = `
+{
+  "data": Uint8Array [
+    5,
+    0,
+    4,
+  ],
+  "opCode": 71,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusSetOption 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 81,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusStart (speed: 12 E/min) 1`] = `
+{
+  "data": Uint8Array [
+    244,
+    1,
+    0,
+  ],
+  "opCode": 74,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusStart (speed: 30 E/min) 1`] = `
+{
+  "data": Uint8Array [
+    244,
+    1,
+    1,
+  ],
+  "opCode": 74,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusStart (speed: 60 E/min) 1`] = `
+{
+  "data": Uint8Array [
+    244,
+    1,
+    2,
+  ],
+  "opCode": 74,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate bolusStop 1`] = `
+{
+  "data": undefined,
+  "opCode": 68,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalAvgBolus 1`] = `
+{
+  "data": undefined,
+  "opCode": 16,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalClearUserTimeChangeFlag 1`] = `
+{
+  "data": undefined,
+  "opCode": 35,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalGetDecRatio 1`] = `
+{
+  "data": undefined,
+  "opCode": 128,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalGetInitialScreenInformation 1`] = `
+{
+  "data": undefined,
+  "opCode": 2,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalGetPumpCheck 1`] = `
+{
+  "data": undefined,
+  "opCode": 33,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalGetPumpTime 1`] = `
+{
+  "data": undefined,
+  "opCode": 112,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalGetPumpTimeWithUtc 1`] = `
+{
+  "data": undefined,
+  "opCode": 120,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalGetShippingInformation 1`] = `
+{
+  "data": undefined,
+  "opCode": 32,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalGetShippingVersion 1`] = `
+{
+  "data": undefined,
+  "opCode": 129,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalGetUserOption 1`] = `
+{
+  "data": undefined,
+  "opCode": 114,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalGetUserTimeChangeFlag 1`] = `
+{
+  "data": undefined,
+  "opCode": 34,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalKeepConnection 1`] = `
+{
+  "data": undefined,
+  "opCode": 255,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalSaveHistory 1`] = `
+{
+  "data": Uint8Array [
+    1,
+    231,
+    12,
+    5,
+    12,
+    0,
+    0,
+    1,
+    1,
+    0,
+  ],
+  "opCode": 224,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalSetHistoryUploadMode. Turn off 1`] = `
+{
+  "data": Uint8Array [
+    0,
+  ],
+  "opCode": 37,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalSetHistoryUploadMode. Turn on 1`] = `
+{
+  "data": Uint8Array [
+    1,
+  ],
+  "opCode": 37,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalSetPumpTime 1`] = `
+{
+  "data": Uint8Array [
+    231,
+    12,
+    5,
+    12,
+    0,
+    0,
+  ],
+  "opCode": 113,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalSetPumpTimeWithTimezone 1`] = `
+{
+  "data": Uint8Array [
+    231,
+    12,
+    5,
+    11,
+    0,
+    0,
+    1,
+  ],
+  "opCode": 121,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate generalSetUserOption 1`] = `
+{
+  "data": Uint8Array [
+    1,
+    1,
+    0,
+    10,
+    10,
+    1,
+    1,
+    0,
+    20,
+    250,
+    0,
+    7,
+    0,
+    55,
+    0,
+  ],
+  "opCode": 115,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historyAlarm (from date) 1`] = `
+{
+  "data": Uint8Array [
+    231,
+    12,
+    5,
+    12,
+    0,
+    0,
+  ],
+  "opCode": 25,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historyAlarm 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 25,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historyAll 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 31,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historyBasal 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 26,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historyBloodGlucose 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 21,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historyBolus 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 17,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historyCarbohydrates 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 22,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historyDaily 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 18,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historyPrime 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 19,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historyRefill 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 20,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historySuspend 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 24,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate historyTemporary 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 23,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate loopHistoryEvents (from date in utc) 1`] = `
+{
+  "data": Uint8Array [
+    231,
+    12,
+    5,
+    11,
+    0,
+    0,
+  ],
+  "opCode": 194,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate loopHistoryEvents 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 194,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate loopSetHistoryEvent 1`] = `
+{
+  "data": Uint8Array [
+    14,
+    231,
+    12,
+    5,
+    11,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+  ],
+  "opCode": 195,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate loopSetTemporaryBasal (percent < 0) 1`] = `
+{
+  "data": Uint8Array [
+    0,
+    0,
+    160,
+  ],
+  "opCode": 193,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate loopSetTemporaryBasal (percent > 500) 1`] = `
+{
+  "data": Uint8Array [
+    244,
+    1,
+    150,
+  ],
+  "opCode": 193,
+}
+`;
+
+exports[`Generate packet tests (snapshot way) Should generate loopSetTemporaryBasal 1`] = `
+{
+  "data": Uint8Array [
+    200,
+    0,
+    150,
+  ],
+  "opCode": 193,
+}
+`;

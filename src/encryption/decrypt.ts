@@ -6,7 +6,7 @@ interface DecryptParam {
   data: Uint8Array;
   deviceName: string;
   enhancedEncryption: number;
-  useAdvancedEncryptionMode: boolean;
+  isEncryptionMode: boolean;
   pairingKeyLength: number;
   randomPairingKeyLength: number;
   ble5KeyLength: number;
@@ -19,7 +19,7 @@ interface DecryptParam {
 export function decrypt(options: DecryptParam) {
   options.data = encodePacketSerialNumber(options.data, options.deviceName);
 
-  if (!options.useAdvancedEncryptionMode && options.enhancedEncryption == 0) {
+  if (!options.isEncryptionMode && options.enhancedEncryption == 0) {
     options.data = encodePacketTime(options.data, options.timeSecret);
     options.data = encodePacketPassword(options.data, options.passwordSecret);
     options.data = encodePacketPassKey(options.data, options.passKeySecret);
@@ -30,7 +30,7 @@ export function decrypt(options: DecryptParam) {
   }
 
   const content = options.data.subarray(3, options.data[2] + 3);
-  const crc = generateCrc(content, options.enhancedEncryption, options.useAdvancedEncryptionMode);
+  const crc = generateCrc(content, options.enhancedEncryption, options.isEncryptionMode);
   if (crc >> 8 !== options.data[options.data.length - 4] || (crc & 0xff) !== options.data[options.data.length - 3]) {
     throw new Error('Crc checksum failed...');
   }
@@ -51,17 +51,17 @@ export function decrypt(options: DecryptParam) {
   if (content[0] === 0x2 && content[1] === 0x1) {
     // Response for DANAR_PACKET__OPCODE_ENCRYPTION__TIME_INFORMATION
     if (options.enhancedEncryption === 1) {
-      options.useAdvancedEncryptionMode = options.pairingKeyLength === 0 && options.randomPairingKeyLength === 0;
+      options.isEncryptionMode = options.pairingKeyLength === 0 && options.randomPairingKeyLength === 0;
     } else if (options.enhancedEncryption === 2) {
-      options.useAdvancedEncryptionMode = options.ble5KeyLength === 0;
+      options.isEncryptionMode = options.ble5KeyLength === 0;
     } else {
       // The initial message
       if (options.data.length !== 0x11) {
         throw new Error('Invalid length for TIME_INFORMATION');
       }
 
-      options.useAdvancedEncryptionMode = false;
-      options.timeSecret = Array.from(content.subarray(2));
+      options.isEncryptionMode = false;
+      options.timeSecret = Array.from(content.subarray(2, 8));
 
       options.passwordSecret = Array.from(content.subarray(8, 10));
       options.passwordSecret[0] ^= 0x87;
@@ -71,7 +71,7 @@ export function decrypt(options: DecryptParam) {
 
   return {
     data: content,
-    useAdvancedEncryptionMode: options.useAdvancedEncryptionMode,
+    isEncryptionMode: options.isEncryptionMode,
     timeSecret: options.timeSecret,
     passwordSecret: options.passwordSecret,
     passKeySecret: options.passKeySecret,

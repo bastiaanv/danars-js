@@ -22,14 +22,13 @@ export function generatePacketBolusStart(options: PacketBolusStart): DanaGenerat
 }
 
 function speedToOrdinal(speed: BolusSpeed) {
-  if (speed === 12) {
-    return 0;
-  } else if (speed === 30) {
-    return 1;
-  } else if (speed === 60) {
-    return 2;
-  } else {
-    throw new Error('Invalid bolus speed');
+  switch (speed) {
+    case 12:
+      return 0;
+    case 30:
+      return 1;
+    case 60:
+      return 2;
   }
 }
 

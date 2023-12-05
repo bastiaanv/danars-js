@@ -14,7 +14,7 @@ import {
   generatePacketGeneralGetInitialScreenInformation,
 } from './packets/dana.packet.general.get.initial.screen.information';
 import { generatePacketLoopSetEventHistory } from './packets/dana.packet.loop.set.event.history';
-import { DanaHistoryEntryType } from './packets/dana.type.loop.history.entry.enum';
+import { LoopHistoryEvents } from './packets/dana.type.loop.history.events.enum';
 
 export default class DanaPump {
   private bleComm: BleComm;
@@ -102,21 +102,6 @@ export default class DanaPump {
     if (!bolusResponse.success) {
       console.error(`${formatPrefix('ERROR')} Failed to do bolus...`, bolusResponse);
       throw new Error('Failed to do bolus...');
-    }
-
-    if (options.carbohydrates && options.carbohydrates > 0) {
-      const historyEventRequest = generatePacketLoopSetEventHistory({
-        packetType: DanaHistoryEntryType.CARBS,
-        time: new Date(),
-        param1: options.carbohydrates,
-        param2: 0,
-        usingUTC: this.usingUTC,
-      });
-
-      const historyEventResponse = await this.bleComm.writeMessage(historyEventRequest);
-      if (!historyEventResponse.success) {
-        console.warn(`${formatPrefix('WARNING')} Failed to store history event...`, bolusResponse);
-      }
     }
   }
 

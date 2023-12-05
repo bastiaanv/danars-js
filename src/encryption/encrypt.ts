@@ -13,7 +13,7 @@ interface EncryptParams {
   passKeySecret: number[];
 }
 
-export function encrypt(options: EncryptParams): { data: Uint8Array; useAdvancedEncryptionMode: boolean } {
+export function encrypt(options: EncryptParams): { data: Uint8Array; isEncryptionMode: boolean } {
   switch (options.operationCode) {
     // DANAR_PACKET__OPCODE_ENCRYPTION__PUMP_CHECK
     case 0x00:
@@ -133,7 +133,7 @@ function encodePumpCheckCommand(deviceName: string, enhancedEncryption: number) 
   buffer[17] = 0x5a; // footer 1
   buffer[18] = 0x5a; // footer 2
 
-  return { data: encodePacketSerialNumber(buffer, deviceName), useAdvancedEncryptionMode: true };
+  return { data: encodePacketSerialNumber(buffer, deviceName), isEncryptionMode: true };
 }
 
 function encodeRequestCommand(operationCode: number, deviceName: string, enhancedEncryption: number) {
@@ -150,7 +150,7 @@ function encodeRequestCommand(operationCode: number, deviceName: string, enhance
   buffer[7] = 0x5a; // footer 1
   buffer[8] = 0x5a; // footer 2
 
-  return { data: encodePacketSerialNumber(buffer, deviceName), useAdvancedEncryptionMode: true };
+  return { data: encodePacketSerialNumber(buffer, deviceName), isEncryptionMode: true };
 }
 
 function encodeTimeInformation(data: Uint8Array | undefined, deviceName: string, enhancedEncryption: number) {
@@ -180,7 +180,7 @@ function encodeTimeInformation(data: Uint8Array | undefined, deviceName: string,
   buffer[7 + lengthOfData] = 0x5a; // footer 1
   buffer[8 + lengthOfData] = 0x5a; // footer 2
 
-  return { data: encodePacketSerialNumber(buffer, deviceName), useAdvancedEncryptionMode: true };
+  return { data: encodePacketSerialNumber(buffer, deviceName), isEncryptionMode: true };
 }
 
 function encodeCheckPassKeyCommand(data: Uint8Array | undefined, deviceName: string, enhancedEncryption: number) {
@@ -204,7 +204,7 @@ function encodeCheckPassKeyCommand(data: Uint8Array | undefined, deviceName: str
   buffer[7 + lengthOfData] = 0x5a; // footer 1
   buffer[8 + lengthOfData] = 0x5a; // footer 2
 
-  return { data: encodePacketSerialNumber(buffer, deviceName), useAdvancedEncryptionMode: true };
+  return { data: encodePacketSerialNumber(buffer, deviceName), isEncryptionMode: true };
 }
 
 function encodeDefault(options: EncryptParams) {
@@ -235,5 +235,5 @@ function encodeDefault(options: EncryptParams) {
     encrypted1 = encodePacketPassKey(encrypted1, options.passKeySecret);
   }
 
-  return { data: encrypted1, useAdvancedEncryptionMode: false };
+  return { data: encrypted1, isEncryptionMode: false };
 }

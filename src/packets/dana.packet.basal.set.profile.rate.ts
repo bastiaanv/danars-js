@@ -1,5 +1,5 @@
-import { DANA_PACKET_TYPE } from './dana.type.message.enum';
 import { DATA_START, DanaGeneratePacket, DanaParsePacket } from './dana.packet.base';
+import { DANA_PACKET_TYPE } from './dana.type.message.enum';
 
 export interface PacketBasalSetProfileRate {
   profileNumber: number;
@@ -10,6 +10,10 @@ export interface PacketBasalSetProfileRate {
 
 export const CommandBasalSetProfileRate = ((DANA_PACKET_TYPE.TYPE_RESPONSE & 0xff) << 8) + (DANA_PACKET_TYPE.OPCODE_BASAL__SET_PROFILE_BASAL_RATE & 0xff);
 export function generatePacketBasalSetProfileRate(options: PacketBasalSetProfileRate): DanaGeneratePacket {
+  if (options.profileBasalRate.length !== 24) {
+    throw new Error('Invalid basal rate. Expected length = 24');
+  }
+
   const data = new Uint8Array(49);
   data[0] = options.profileNumber & 0xff;
 

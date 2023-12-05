@@ -1,4 +1,3 @@
-import { ENCRYPTION_TYPE } from './encryption/encryption.type.enum';
 import { DanaRSEncryption } from './encryption/index';
 import { ConnectionEvents } from './events/connection.events';
 import DanaPump from './index';
@@ -20,21 +19,27 @@ type ConnectingEvents = { code: ObjectValues<typeof ConnectionEvents>; message?:
 const okCharCodes = [
   0x4f, // O
   0x4b, // K
-];
+] as const;
 
 const pumpCharCodes = [
   0x50, // P
   0x55, // U
   0x4d, // M
   0x50, // P
-];
+] as const;
 
 const busyCharCodes = [
   0x42, // B
   0x55, // U
   0x53, // S
   0x59, // Y
-];
+] as const;
+
+const ENCRYPTION_TYPE = {
+  DEFAULT: 0,
+  RSv3: 1,
+  BLE_5: 2,
+} as const;
 
 const deviceNameRegex = new RegExp(/^([a-zA-Z]{3})([0-9]{5})([a-zA-Z]{2})$/);
 

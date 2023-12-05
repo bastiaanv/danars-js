@@ -1,7 +1,12 @@
-import { DANA_PACKET_TYPE } from './dana.type.message.enum';
 import { DATA_START, DanaGeneratePacket, DanaParsePacket } from './dana.packet.base';
+import { DANA_PACKET_TYPE } from './dana.type.message.enum';
 
 export interface PacketGeneralSetHistoryUploadMode {
+  /**
+   * 1 -> Turn on history upload mode, 0 -> turn off history upload mode.
+   *
+   * Need to do this before and after fetching the history from pump
+   */
   mode: number;
 }
 

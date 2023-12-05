@@ -12,6 +12,7 @@ export function encodePacketPassKeySerialNumber(value: number, deviceName: strin
   let tmp = 0;
   for (let i = 0; i < 10; i++) {
     tmp += deviceName.charCodeAt(i);
+    tmp &= 0xff;
   }
 
   return value ^ tmp;
@@ -19,8 +20,9 @@ export function encodePacketPassKeySerialNumber(value: number, deviceName: strin
 
 // exec_get_enc_packet_password
 export function encodePacketPassword(buffer: Uint8Array, passwordSecret: number[]) {
+  const tmp = passwordSecret[0] + passwordSecret[1];
   for (let i = 3; i < buffer.length - 2; i++) {
-    buffer[i] = buffer[i] ^ (passwordSecret[0] + passwordSecret[1]);
+    buffer[i] = buffer[i] ^ tmp;
   }
 
   return buffer;
@@ -75,12 +77,12 @@ export function encodePairingKey(buffer: Uint8Array, pairingKey: number[], globa
   }
 
   // set global random sync key to new_random_sync_key..
-  return new_random_sync_key;
+  return { global_random_sync_key: new_random_sync_key, buffer };
 }
 
 // exec_get_desc_pairingkey(char*, int)
 export function getDescPairingKey(buffer: Uint8Array, pairingKey: number[], global_random_sync_key: number) {
-  // This is the reverse of encodePairingKey :)
+  // This is the reverse of encodePairingKey
   let new_random_sync_key = global_random_sync_key;
 
   for (let i = 0; i < buffer.length; i++) {
@@ -105,7 +107,7 @@ export function getDescPairingKey(buffer: Uint8Array, pairingKey: number[], glob
     new_random_sync_key = tmp;
   }
 
-  return new_random_sync_key;
+  return { global_random_sync_key: new_random_sync_key, buffer };
 }
 
 export function encryptionRandomSyncKey(randomSyncKey: number, randomPairingKey: number[]) {

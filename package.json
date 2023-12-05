@@ -12,7 +12,8 @@
   ],
   "scripts": {
     "build": "tsc && rollup --config rollup.config.js",
-    "check": "tsc --noEmit --skipLibCheck"
+    "check": "tsc --noEmit --skipLibCheck",
+    "test": "jest --coverage"
   },
   "author": "Bastiaan Verhaar",
   "license": "ISC",

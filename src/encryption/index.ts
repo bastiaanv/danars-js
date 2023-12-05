@@ -5,7 +5,7 @@ import { secondLvlEncryptionLookupShort } from './lookup';
 
 export class DanaRSEncryption {
   private static enhancedEncryption = 0;
-  private static useAdvancedEncryptionMode = true;
+  private static isEncryptionMode = true;
 
   /** Length 2 */
   private static passwordSecret: number[] = [];
@@ -40,8 +40,8 @@ export class DanaRSEncryption {
       passKeySecret: this.passKeySecret,
     };
 
-    const { data, useAdvancedEncryptionMode } = encrypt(encryptParams);
-    this.useAdvancedEncryptionMode = useAdvancedEncryptionMode;
+    const { data, isEncryptionMode } = encrypt(encryptParams);
+    this.isEncryptionMode = isEncryptionMode;
 
     return data;
   }
@@ -66,7 +66,7 @@ export class DanaRSEncryption {
       data: buffer,
       deviceName,
       enhancedEncryption: this.enhancedEncryption,
-      useAdvancedEncryptionMode: this.useAdvancedEncryptionMode,
+      isEncryptionMode: this.isEncryptionMode,
       pairingKeyLength: this.pairingKey.length,
       randomPairingKeyLength: this.randomPairingKey.length,
       ble5KeyLength: this.ble5Key.length,
@@ -77,7 +77,7 @@ export class DanaRSEncryption {
     };
 
     const decryptionResult = decrypt(decryptParams);
-    this.useAdvancedEncryptionMode = decryptionResult.useAdvancedEncryptionMode;
+    this.isEncryptionMode = decryptionResult.isEncryptionMode;
     this.timeSecret = decryptionResult.timeSecret;
     this.passwordSecret = decryptionResult.passwordSecret;
     this.passKeySecret = decryptionResult.passKeySecret;
