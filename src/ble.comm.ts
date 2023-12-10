@@ -2,10 +2,13 @@ import { DanaRSEncryption } from './encryption/index';
 import { ConnectionEvents } from './events/connection.events';
 import DanaPump from './index';
 import { DanaGeneratePacket, DanaParsePacket } from './packets/dana.packet.base';
+import { CommandGeneralSetHistoryUploadMode } from './packets/dana.packet.general.set.history.upload.mode';
+import { HistoryItem } from './packets/dana.packet.history.base';
 import { CommandNotifyAlarm, PacketNotifyAlarm } from './packets/dana.packet.notify';
 import { CommandNotifyDeliveryComplete, PacketNotifyDeliveryComplete } from './packets/dana.packet.notify.delivery.complete';
 import { CommandNotifyDeliveryRateDisplay, PacketNotifyDeliveryRateDisplay } from './packets/dana.packet.notify.delivery.rate.display';
 import { CommandNotifyMissedBolus, PacketNotifyMissedBolus } from './packets/dana.packet.notify.missed.bolus';
+import { HistoryCode } from './packets/dana.type.history.code';
 import { DANA_PACKET_TYPE } from './packets/dana.type.message.enum';
 import { parseMessage } from './packets/index';
 import { StorageService } from './storage.service';
@@ -67,8 +70,6 @@ export class BleComm {
 
   private readonly READ_SERVICE_UUID = 'FFF0';
   private readonly READ_CHAR_UUID = 'FFF1';
-  // private readonly BLE5_DESCRIPTOR_UUID = '00002902-0000-1000-8000-00805f9b34fb';
-
   private readonly WRITE_SERVICE_UUID = 'FFF0';
   private readonly WRITE_CHAR_UUID = 'FFF2';
 
@@ -80,6 +81,9 @@ export class BleComm {
   // NOTE: usage of `isEasyMode` and `isUnitUD` is unknown
   private isEasyMode = false;
   private isUnitUD = false;
+  private _isInFetchHistoryMode = false;
+
+  private historyLog: HistoryItem[] = [];
 
   private commScheduler: Record<number, { callback: (data: DanaParsePacket<unknown>) => void; timeout: any }> = {};
 
@@ -101,6 +105,19 @@ export class BleComm {
 
   private set isConnected(value: boolean) {
     this._isConnected = value;
+  }
+
+  public get isInFetchHistoryMode() {
+    return this._isInFetchHistoryMode;
+  }
+
+  private set isInFetchHistoryMode(value: boolean) {
+    this._isInFetchHistoryMode = value;
+
+    // Empty history log when not in fetchHistoryMode
+    if (!value) {
+      this.historyLog = [];
+    }
   }
 
   // Buffers
@@ -241,6 +258,17 @@ export class BleComm {
       throw new Error('This message is not done processing...');
     }
 
+    const isHistoryPacket = this.isHistoryPacket(packet.opCode);
+    if (isHistoryPacket && !this.isInFetchHistoryMode) {
+      throw new Error('Pump is not in history fetch mode... Send PacketGeneralSetHistoryUploadMode first');
+    }
+
+    if (packet.opCode === CommandGeneralSetHistoryUploadMode && packet.data) {
+      this.isInFetchHistoryMode = packet.data[0] === 0x01;
+    } else {
+      this.isInFetchHistoryMode = false;
+    }
+
     console.log(`${formatPrefix()} Encrypting data`, packet);
 
     let data = DanaRSEncryption.encodePacket(packet.opCode, packet.data, this.deviceName);
@@ -259,15 +287,18 @@ export class BleComm {
       data = data.subarray(end);
     }
 
-    // Now schedule a 5 sec timeout for the pump to send its message back
+    // Now schedule a 5 sec timeout (or 20 when in fetchHistoryMode) for the pump to send its message back
     // This timeout will be cancelled by `processMessage` once it received the message
     // If this timeout expired, disconnect from the pump and prompt an error...
     return new Promise<DanaParsePacket<unknown>>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        console.error(`${formatPrefix('ERROR')} Send message timeout hit! Disconnecting from device...`, packet);
-        this.disconnect();
-        reject();
-      }, 5000);
+      const timeout = setTimeout(
+        () => {
+          console.error(`${formatPrefix('ERROR')} Send message timeout hit! Disconnecting from device...`, packet);
+          this.disconnect();
+          reject();
+        },
+        !isHistoryPacket ? 5000 : 20000
+      );
 
       this.commScheduler[command] = {
         callback: (data: DanaParsePacket<unknown>) => resolve(data),
@@ -641,6 +672,24 @@ export class BleComm {
       return;
     }
 
+    if (this.isHistoryPacket(message.command)) {
+      const data = message.data as HistoryItem;
+      if (data.code === HistoryCode.RECORD_TYPE_DONE_UPLOAD) {
+        scheduledMessage.callback({
+          success: true,
+          data: this.historyLog,
+        });
+
+        // Clear scheduler
+        clearTimeout(scheduledMessage.timeout);
+        delete this.commScheduler[message.command];
+      } else {
+        this.historyLog.push(data);
+      }
+
+      return;
+    }
+
     scheduledMessage.callback(message);
 
     // Clear scheduler
@@ -669,6 +718,11 @@ export class BleComm {
     this.deviceAddress = '';
     this.deviceName = '';
     this.encryptionType = ENCRYPTION_TYPE.DEFAULT;
+  }
+
+  private isHistoryPacket(opCode: number): boolean {
+    const base = (DANA_PACKET_TYPE.TYPE_RESPONSE & 0xff) << 8;
+    return opCode > base + DANA_PACKET_TYPE.OPCODE_REVIEW__BASAL && opCode < base + DANA_PACKET_TYPE.OPCODE_REVIEW__ALL_HISTORY;
   }
 }
 

@@ -38,6 +38,7 @@ import { CommandGeneralSetUserOption, parsePacketGeneralSetUserOption } from './
 import { CommandHistoryAlarm } from './dana.packet.history.alarm';
 import { CommandHistoryAll } from './dana.packet.history.all';
 import { CommandHistoryBasal } from './dana.packet.history.basal';
+import { parsePacketHistory } from './dana.packet.history.base';
 import { CommandHistoryBloodGlucose } from './dana.packet.history.blood.glucose';
 import { CommandHistoryBolus } from './dana.packet.history.bolus';
 import { CommandHistoryCarbohydrates } from './dana.packet.history.carbohydrates';
@@ -102,17 +103,17 @@ const findMessageParser = {
   [CommandGeneralSetPumpTime]: parsePacketGeneralSetPumpTime,
   [CommandGeneralSetPumpTimeUtcWithTimezone]: parsePacketGeneralSetPumpTimeUtcWithTimezone,
   [CommandGeneralSetUserOption]: parsePacketGeneralSetUserOption,
-  [CommandHistoryAlarm]: null,
-  [CommandHistoryAll]: null,
-  [CommandHistoryBasal]: null,
-  [CommandHistoryBloodGlucose]: null,
-  [CommandHistoryBolus]: null,
-  [CommandHistoryCarbohydrates]: null,
-  [CommandHistoryDaily]: null,
-  [CommandHistoryPrime]: null,
-  [CommandHistoryRefill]: null,
-  [CommandHistorySuspend]: null,
-  [CommandHistoryTemporary]: null,
+  [CommandHistoryAlarm]: parsePacketHistory,
+  [CommandHistoryAll]: parsePacketHistory,
+  [CommandHistoryBasal]: parsePacketHistory,
+  [CommandHistoryBloodGlucose]: parsePacketHistory,
+  [CommandHistoryBolus]: parsePacketHistory,
+  [CommandHistoryCarbohydrates]: parsePacketHistory,
+  [CommandHistoryDaily]: parsePacketHistory,
+  [CommandHistoryPrime]: parsePacketHistory,
+  [CommandHistoryRefill]: parsePacketHistory,
+  [CommandHistorySuspend]: parsePacketHistory,
+  [CommandHistoryTemporary]: parsePacketHistory,
   [CommandLoopHistoryEvents]: parsePacketLoopHistoryEvents,
   [CommandLoopSetEventHistory]: parsePacketLoopSetEventHistory,
   [CommandLoopSetTemporaryBasal]: parsePacketLoopSetTemporaryBasal,
