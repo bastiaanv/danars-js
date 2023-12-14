@@ -1,5 +1,5 @@
 import { ObjectValues } from '../types';
-import { DATA_START, DanaParsePacket, addDateToPacket, uint8ArrayToNumber } from './dana.packet.base';
+import { DATA_START, DanaParsePacket, addDateToPacket } from './dana.packet.base';
 import { HistoryCode } from './dana.type.history.code';
 
 export interface PacketHistoryBase {

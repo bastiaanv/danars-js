@@ -527,7 +527,7 @@ exports[`Generate packet tests (snapshot way) Should generate generalSaveHistory
 {
   "data": Uint8Array [
     1,
-    231,
+    23,
     12,
     5,
     12,
@@ -562,7 +562,7 @@ exports[`Generate packet tests (snapshot way) Should generate generalSetHistoryU
 exports[`Generate packet tests (snapshot way) Should generate generalSetPumpTime 1`] = `
 {
   "data": Uint8Array [
-    231,
+    23,
     12,
     5,
     12,
@@ -576,7 +576,7 @@ exports[`Generate packet tests (snapshot way) Should generate generalSetPumpTime
 exports[`Generate packet tests (snapshot way) Should generate generalSetPumpTimeWithTimezone 1`] = `
 {
   "data": Uint8Array [
-    231,
+    23,
     12,
     5,
     11,
@@ -614,7 +614,7 @@ exports[`Generate packet tests (snapshot way) Should generate generalSetUserOpti
 exports[`Generate packet tests (snapshot way) Should generate historyAlarm (from date) 1`] = `
 {
   "data": Uint8Array [
-    231,
+    23,
     12,
     5,
     12,
@@ -782,7 +782,7 @@ exports[`Generate packet tests (snapshot way) Should generate historyTemporary 1
 exports[`Generate packet tests (snapshot way) Should generate loopHistoryEvents (from date in utc) 1`] = `
 {
   "data": Uint8Array [
-    231,
+    23,
     12,
     5,
     11,
@@ -811,7 +811,7 @@ exports[`Generate packet tests (snapshot way) Should generate loopSetHistoryEven
 {
   "data": Uint8Array [
     14,
-    231,
+    23,
     12,
     5,
     11,
