@@ -55,7 +55,7 @@ import { CommandNotifyDeliveryComplete, parsePacketNotifyDeliveryComplete } from
 import { CommandNotifyDeliveryRateDisplay, parsePacketNotifyDeliveryRateDisplay } from './dana.packet.notify.delivery.rate.display';
 import { CommandNotifyMissedBolus, parsePacketNotifyMissedBolus } from './dana.packet.notify.missed.bolus';
 
-export function parseMessage(data: Uint8Array, usingUTC: boolean) {
+export function parseMessage(data: Uint8Array) {
   const receivedCommand = ((data[TYPE_INDEX] & 0xff) << 8) + (data[OP_CODE_INDEX] & 0xff);
 
   const parser = findMessageParser[receivedCommand];
@@ -63,7 +63,7 @@ export function parseMessage(data: Uint8Array, usingUTC: boolean) {
     return null;
   }
 
-  return { ...parser(data, usingUTC), command: receivedCommand };
+  return { ...parser(data), command: receivedCommand };
 }
 
 const findMessageParser = {

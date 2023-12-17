@@ -90,7 +90,7 @@ export class BleComm {
   private _encryptionType: ObjectValues<typeof ENCRYPTION_TYPE> = ENCRYPTION_TYPE.DEFAULT;
 
   private set encryptionType(value: typeof this._encryptionType) {
-    console.log(`Using encryption level: ${value}`);
+    console.log(`${formatPrefix()} Using encryption level: ${value}`);
     this._encryptionType = value;
     DanaRSEncryption.setEnhancedEncryption(value);
   }
@@ -640,7 +640,7 @@ export class BleComm {
   }
 
   private processMessage(data: Uint8Array) {
-    const message = parseMessage(data, this.pump.usingUTC);
+    const message = parseMessage(data);
     if (!message) {
       console.warn(`${formatPrefix('WARNING')} Received unparsable message (or history packet)`, data);
       return;
@@ -721,8 +721,7 @@ export class BleComm {
   }
 
   private isHistoryPacket(opCode: number): boolean {
-    const base = (DANA_PACKET_TYPE.TYPE_RESPONSE & 0xff) << 8;
-    return opCode > base + DANA_PACKET_TYPE.OPCODE_REVIEW__BASAL && opCode < base + DANA_PACKET_TYPE.OPCODE_REVIEW__ALL_HISTORY;
+    return opCode > DANA_PACKET_TYPE.OPCODE_REVIEW__BASAL && opCode < DANA_PACKET_TYPE.OPCODE_REVIEW__ALL_HISTORY;
   }
 }
 

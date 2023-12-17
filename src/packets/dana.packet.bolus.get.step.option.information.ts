@@ -1,5 +1,5 @@
-import { DANA_PACKET_TYPE } from './dana.type.message.enum';
 import { DATA_START, DanaGeneratePacket, DanaParsePacket, uint8ArrayToNumber } from './dana.packet.base';
+import { DANA_PACKET_TYPE } from './dana.type.message.enum';
 
 export interface PacketBolusGetStepInformation {
   bolusType: number;
@@ -19,13 +19,9 @@ export function generatePacketBolusGetStepInformation(): DanaGeneratePacket {
   };
 }
 
-export function parsePacketBolusGetStepInformation(data: Uint8Array, usingUTC: boolean): DanaParsePacket<PacketBolusGetStepInformation> {
+export function parsePacketBolusGetStepInformation(data: Uint8Array): DanaParsePacket<PacketBolusGetStepInformation> {
   const lastBolusTime = new Date();
-  if (usingUTC) {
-    lastBolusTime.setUTCHours(data[DATA_START + 4], data[DATA_START + 5], 0, 0);
-  } else {
-    lastBolusTime.setHours(data[DATA_START + 4], data[DATA_START + 5], 0, 0);
-  }
+  lastBolusTime.setHours(data[DATA_START + 4], data[DATA_START + 5], 0, 0);
 
   return {
     success: data[DATA_START] === 0,
