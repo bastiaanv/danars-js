@@ -1,6 +1,8 @@
 import { BleComm } from './ble.comm';
+import { ConnectionEvents } from './events/connection.events';
 import { BasalTempActivateModel } from './models/basal.temp.activate.model';
 import { BasalUpdateProfileModel } from './models/basal.update.profile.model';
+import { BaseModel } from './models/base.model';
 import { BolusStartModel } from './models/bolus.start.model';
 import { getFriendlyDeviceName } from './models/friendly.device.name';
 import { generatePacketBasalCancelTemporary } from './packets/dana.packet.basal.cancel.temporary';
@@ -13,8 +15,7 @@ import {
   PacketGeneralGetInitialScreenInformation,
   generatePacketGeneralGetInitialScreenInformation,
 } from './packets/dana.packet.general.get.initial.screen.information';
-import { generatePacketLoopSetEventHistory } from './packets/dana.packet.loop.set.event.history';
-import { LoopHistoryEvents } from './packets/dana.type.loop.history.events.enum';
+import { filter, firstValueFrom, map } from 'rxjs';
 
 export default class DanaPump {
   private bleComm: BleComm;
@@ -64,6 +65,21 @@ export default class DanaPump {
     return this.bleComm.connect(address);
   }
 
+  private async connectAsync(address: string) {
+    const subscription = await this.connect(address);
+    if (!subscription) {
+      // If empty, the app is already connected and we can skip this
+      return true;
+    }
+
+    return firstValueFrom(
+      subscription.pipe(
+        filter((x) => x.code === ConnectionEvents.Connected || x.code < 0),
+        map((x) => x.code > 0)
+      )
+    );
+  }
+
   public disconnect() {
     if (!this.isConnected) {
       return;
@@ -80,7 +96,12 @@ export default class DanaPump {
     return this.bleComm.stopScan();
   }
 
-  public async getInitialState() {
+  public async getInitialState(options: BaseModel) {
+    const isConnected = await this.connectAsync(options.address);
+    if (!isConnected) {
+      throw new Error('Failed to connect...');
+    }
+
     const request = generatePacketGeneralGetInitialScreenInformation();
     const response = await this.bleComm.writeMessage(request);
     if (!response.success) {
@@ -88,12 +109,15 @@ export default class DanaPump {
       throw new Error('Failed to do bolus...');
     }
 
+    await this.disconnect();
+
     return response.data as PacketGeneralGetInitialScreenInformation;
   }
 
   public async bolusStart(options: BolusStartModel) {
-    if (!this.isConnected) {
-      throw new Error('Device not connected');
+    const isConnected = await this.connectAsync(options.address);
+    if (!isConnected) {
+      throw new Error('Failed to connect...');
     }
 
     const bolusRequest = generatePacketBolusStart({ amount: options.amount, speed: options.speed ?? 12 });
@@ -103,11 +127,14 @@ export default class DanaPump {
       console.error(`${formatPrefix('ERROR')} Failed to do bolus...`, bolusResponse);
       throw new Error('Failed to do bolus...');
     }
+
+    await this.disconnect();
   }
 
-  public async bolusStop() {
-    if (!this.isConnected) {
-      throw new Error('Device not connected');
+  public async bolusStop(options: BaseModel) {
+    const isConnected = await this.connectAsync(options.address);
+    if (!isConnected) {
+      throw new Error('Failed to connect...');
     }
 
     const stopRequest = generatePacketBolusStop();
@@ -117,11 +144,14 @@ export default class DanaPump {
       console.error(`${formatPrefix('ERROR')} Failed to stop bolus...`, stopResponse);
       throw new Error('Failed to stop bolus...');
     }
+
+    await this.disconnect();
   }
 
   public async setBasal(options: BasalUpdateProfileModel) {
-    if (!this.isConnected) {
-      throw new Error('Device not connected');
+    const isConnected = await this.connectAsync(options.address);
+    if (!isConnected) {
+      throw new Error('Failed to connect...');
     }
 
     if (options.rates.length !== 24) {
@@ -135,19 +165,20 @@ export default class DanaPump {
       throw new Error('Failed to update basal rate...');
     }
 
-    if (options.activateThisProfile) {
-      const basalProfileRequest = generatePacketBasalSetProfileNumber({ profileNumber: options.profileNumber });
-      const basalProfileResponse = await this.bleComm.writeMessage(basalProfileRequest);
-      if (!basalProfileResponse.success) {
-        console.error(`${formatPrefix('ERROR')} Failed to switch to updated profile number`, { response: basalProfileResponse, request: basalProfileRequest });
-        throw new Error('Failed to switch to profile number...');
-      }
+    const basalProfileRequest = generatePacketBasalSetProfileNumber({ profileNumber: options.profileNumber });
+    const basalProfileResponse = await this.bleComm.writeMessage(basalProfileRequest);
+    if (!basalProfileResponse.success) {
+      console.error(`${formatPrefix('ERROR')} Failed to switch to updated profile number`, { response: basalProfileResponse, request: basalProfileRequest });
+      throw new Error('Failed to switch to profile number...');
     }
+
+    await this.disconnect();
   }
 
   public async setTempBasal(options: BasalTempActivateModel) {
-    if (!this.isConnected) {
-      throw new Error('Device not connected');
+    const isConnected = await this.connectAsync(options.address);
+    if (!isConnected) {
+      throw new Error('Failed to connect...');
     }
 
     options.durationInHours = Math.floor(options.durationInHours);
@@ -158,11 +189,14 @@ export default class DanaPump {
       console.error(`${formatPrefix('ERROR')} Failed to start temporary basal`, { response: tempBasalResponse, request: tempBasalRequest });
       throw new Error('Failed to start temporary basal');
     }
+
+    await this.disconnect();
   }
 
-  public async stopTempBasal() {
-    if (!this.isConnected) {
-      throw new Error('Device not connected');
+  public async stopTempBasal(options: BaseModel) {
+    const isConnected = await this.connectAsync(options.address);
+    if (!isConnected) {
+      throw new Error('Failed to connect...');
     }
 
     const stopRequest = generatePacketBasalCancelTemporary();
@@ -171,6 +205,8 @@ export default class DanaPump {
       console.error(`${formatPrefix('ERROR')} Failed to stop temporary basal`, { response: stopResponse, request: stopRequest });
       throw new Error('Failed to stop temporary basal');
     }
+
+    await this.disconnect();
   }
 
   public static async getInstance() {

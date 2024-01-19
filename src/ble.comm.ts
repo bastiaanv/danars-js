@@ -173,7 +173,7 @@ export class BleComm {
 
   public async connect(address: string) {
     // Catch the "neverConnected"-exception
-    if ((await BluetoothLE.isConnected({ address }).catch(() => ({ isConnected: false }))).isConnected) {
+    if (this.isConnected || (await BluetoothLE.isConnected({ address }).catch(() => ({ isConnected: false }))).isConnected) {
       console.warn(`${formatPrefix('WARNING')} Already connected to device: ${address}`);
       return;
     }
